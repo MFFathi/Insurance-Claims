@@ -1,25 +1,22 @@
 version: "3"
-services:
-  app:
-    build:
-      context: .
-      target: prod
 
+services:
   db:
-    container_name: horizondb
     image: postgres:16-alpine
+    container_name: InsuranceClaims  # Give PostgreSQL a distinct name
     restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=insurance_claims
     ports:
       - "5432:5432"
     volumes:
-      - horizon-db:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
-  django_app:
+  django:
     build: .
-    container_name: django_container
+    container_name: django_app
     restart: always
     depends_on:
       - db
@@ -30,10 +27,9 @@ services:
     volumes:
       - .:/app
     command: >
-      sh -c "python manage.py makemigrations &&
-             python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 InsuranceClaims.wsgi:application"
 
 volumes:
-  horizon-db:
+  postgres_data:
     driver: local
