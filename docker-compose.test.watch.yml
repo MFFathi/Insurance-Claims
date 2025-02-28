@@ -1,0 +1,7 @@
+version: "3"
+services:
+  app:
+    command: "ptw"
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./src:/app/src:ro
