@@ -5,3 +5,13 @@ services:
     volumes:
       - ./tests:/app/tests:ro
       - ./src:/app/src:ro
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_USER=root
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - 5050:80

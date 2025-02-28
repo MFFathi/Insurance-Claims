@@ -1,27 +1,30 @@
+version: "3"
 services:
-  postgreSQL:
-    image: postgres:latest
-    container_name: postgres-container
+  app:
+    build:
+      context: .
+      target: prod
+
+  db:
+    container_name: horizondb
+    image: postgres:16-alpine
     restart: always
-    env_file:
-      - .env  # ✅ Load database credentials from .env file
     environment:
-      POSTGRES_DB: Student_Management
-      POSTGRES_USER: postgreSQL
-      POSTGRES_PASSWORD: 1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - horizon-db:/var/lib/postgresql/data
 
   django_app:
     build: .
     container_name: django_container
     restart: always
     depends_on:
-      - postgreSQL
+      - db
     env_file:
-      - .env  # ✅ Load database credentials from .env file
+      - .env
     ports:
       - "8000:8000"
     volumes:
@@ -32,4 +35,5 @@ services:
              python manage.py runserver 0.0.0.0:8000"
 
 volumes:
-  postgres_data:
+  horizon-db:
+    driver: local
