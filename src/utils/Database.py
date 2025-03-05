@@ -21,7 +21,7 @@ class Database:
         NOTE: Database.init MUST be run after this to fully setup database
         """
 
-        cls.host = get_env("DB_HOST")
+        cls.host = get_env("DB_HOST", "127.0.0.1")
         cls.port = get_env("POSTGRES_PORT")
         cls.dbname = get_env("POSTGRES_DB")
         cls.user = get_env("POSTGRES_USER")
@@ -122,26 +122,26 @@ class Database:
     @classmethod
     def _run_init_sql(cls) -> bool:
         """
-        Runs all sql files in src/init_sql
+        Runs initialization SQL files
         """
-
-        cls._run_sql_in_dir("src/init_sql")
+        cls._run_sql_file("src/init_sql/tests/init_check_table.sql")
+        return True
 
     @classmethod
     def _run_sql_in_dir(cls, path: str) -> bool:
         """
-        Runs all sql files in given directory
+        Runs SQL files in a given directory or a specific SQL file
         """
-
-        dir = os.scandir(path)
-
-        for file in dir:
-            if file.is_dir():
-                cls._run_sql_in_dir(file.path)
-            else:
-                cls._run_sql_file(file.path)
-
-        dir.close()
+        if os.path.isdir(path):
+            for entry in os.scandir(path):
+                if entry.is_file() and entry.name.endswith('.sql'):
+                    cls._run_sql_file(entry.path)
+                elif entry.is_dir():
+                    cls._run_sql_in_dir(entry.path)
+        elif os.path.isfile(path):
+            cls._run_sql_file(path)
+        
+        return True
 
     @classmethod
     def _run_sql_file(cls, path: str) -> bool:
