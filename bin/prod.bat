@@ -1,1 +1,1 @@
-docker compose -f docker-compose.yml up --build app
+docker compose -f docker-compose.yml up --build db django
