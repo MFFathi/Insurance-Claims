@@ -1,0 +1,6 @@
+id: 10
+name: Admin
+extends: 4
+permissions:
+    - .*
+    - account
