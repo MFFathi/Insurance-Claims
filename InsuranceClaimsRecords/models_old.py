@@ -1,0 +1,48 @@
+from django.db import models
+
+class Record(models.Model):
+    recordId = models.AutoField(primary_key=True) 
+    submittedBy = models.CharField(max_length=150, blank=True, null=True)
+    recordType = models.CharField(max_length=150, blank=True, null=True)
+    accidentDate = models.DateField(blank=True, null=True)
+    claimDate = models.DateField(blank=True, null=True)
+    settlementValue = models.FloatField(blank=True, null=True)
+    accidentType = models.CharField(max_length=150, blank=True, null=True)
+    injury_Prognosis = models.CharField(max_length=150, blank=True, null=True)
+    specialHealthExpenses = models.FloatField(blank=True, null=True)
+    specialReduction = models.FloatField(blank=True, null=True)
+    specialOverage = models.FloatField(blank=True, null=True)
+    generalRest = models.FloatField(blank=True, null=True)
+    specialAdditionalInjury = models.FloatField(blank=True, null=True)
+    specialEarningsLoss = models.FloatField(blank=True, null=True)
+    specialUsageLoss = models.FloatField(blank=True, null=True)
+    specialMedications = models.FloatField(blank=True, null=True)
+    specialAssetDamage = models.FloatField(blank=True, null=True)
+    specialRehabilitation = models.FloatField(blank=True, null=True)
+    specialFixes = models.FloatField(blank=True, null=True)
+    generalFixed = models.FloatField(blank=True, null=True)
+    generalUplift = models.FloatField(blank=True, null=True)
+    specialLoanerVehicle = models.FloatField(blank=True, null=True)
+    specialTripCosts = models.FloatField(blank=True, null=True)
+    specialJourneyExpenses = models.CharField(max_length=150, blank=True, null=True)
+    specialTherapy = models.CharField(max_length=150, blank=True, null=True)
+    exceptional_Circumstances = models.BooleanField(default=False)  
+    minor_Psychological_Injury = models.BooleanField(default=False) 
+    dominantInjury = models.CharField(max_length=150, blank=True, null=True)
+    whiplash = models.BooleanField(default=False) 
+    vehicleType = models.CharField(max_length=150, blank=True, null=True)
+    weatherConditions = models.CharField(max_length=150, blank=True, null=True)
+    vehicleAge = models.IntegerField(blank=True, null=True)
+    driverAge = models.IntegerField(blank=True, null=True)
+    numberOfPassengers = models.IntegerField(blank=True, null=True)
+    accidentDescription = models.TextField(blank=True, null=True) # 
+    injuryDescription = models.TextField(blank=True, null=True)  # 
+    policeReportFiled = models.BooleanField(default=False) 
+    witnessPresent = models.BooleanField(default=False) 
+    gender = models.CharField(max_length=20, blank=True, null=True) 
+    createdDate = models.DateField(auto_now_add=True)  
+    lastModifiedDate = models.DateField(auto_now=True) 
+    status = models.CharField(max_length=150, blank=True, null=True)  
+
+    def __str__(self):
+        return f"Record #{self.recordId} - {self.recordType}" 
