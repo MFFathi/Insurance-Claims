@@ -40,7 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'InsuranceClaimsRecords',
-    #'InsuranceClaimsRecords.apps.InsuranceclaimsrecordsConfig',
+    'InsuranceClaimsUser',
+    'InsuranceClaimsCustomer',
+    'InsuranceClaimsML',
+    'InsuranceClaimsFeedback'
 ]
 
 MIDDLEWARE = [
