@@ -1,0 +1,34 @@
+[
+    {
+      "model": "InsuranceClaimsUser.role",
+      "pk": 1,
+      "fields": {
+        "name": "Admin"
+      }
+    },
+    {
+      "model": "InsuranceClaimsUser.role",
+      "pk": 2,
+      "fields": {
+        "name": "User"
+      }
+    },
+    {
+      "model": "InsuranceClaimsUser.permission",
+      "pk": 1,
+      "fields": {
+        "name": "account.view.all",
+        "is_allowed": true,
+        "role": 1
+      }
+    },
+    {
+      "model": "InsuranceClaimsUser.permission",
+      "pk": 2,
+      "fields": {
+        "name": "account.create",
+        "is_allowed": true,
+        "role": 1
+      }
+    }
+  ]
