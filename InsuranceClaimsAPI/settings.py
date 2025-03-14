@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+#test
+
 from pathlib import Path
 from dotenv import load_dotenv
 import os
@@ -41,9 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'InsuranceClaimsRecords',
     'InsuranceClaimsUser',
-    'InsuranceClaimsCustomer',
-    'InsuranceClaimsML',
-    'InsuranceClaimsFeedback'
+    # 'InsuranceClaimsCustomer',
+    # 'InsuranceClaimsML',
+    # 'InsuranceClaimsFeedback'
 ]
 
 MIDDLEWARE = [
@@ -57,6 +59,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'InsuranceClaimsAPI.urls'
+AUTH_USER_MODEL = 'InsuranceClaimsUser.User'
 
 TEMPLATES = [
     {
