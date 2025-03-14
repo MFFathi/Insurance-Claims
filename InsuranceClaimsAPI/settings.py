@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'InsuranceClaimsRecords',
     'InsuranceClaimsUser',
     # 'InsuranceClaimsCustomer',
-    # 'InsuranceClaimsML',
+    'InsuranceClaimsML',
     # 'InsuranceClaimsFeedback'
 ]
 
