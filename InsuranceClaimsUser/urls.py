@@ -12,6 +12,24 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from .models import User, Role, Permission
 from .forms import CustomUserCreationForm, CustomUserChangeForm, LoginForm
 
+from django.urls import path
+from . import views
+
+app_name = 'users'
+
+urlpatterns = [
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('profile/', views.profile_view, name='profile'),
+    path('users/', views.UserListView.as_view(), name='user_list'),
+    path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
+    path('users/create/', views.UserCreateView.as_view(), name='user_create'),
+    path('users/<int:pk>/update/', views.UserUpdateView.as_view(), name='user_update'),
+    path('users/<int:pk>/delete/', views.UserDeleteView.as_view(), name='user_delete'),
+    path('roles/', views.RoleListView.as_view(), name='role_list'),
+    path('roles/<int:pk>/', views.RoleDetailView.as_view(), name='role_detail'),
+]
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -26,7 +44,7 @@ def login_view(request):
                 messages.error(request, 'Username or password incorrect')
     else:
         form = LoginForm()
-    return render(request, 'users/login.html', {'form': form})
+    return render(request, 'templates/login.html', {'form': form})
 
 @login_required
 def logout_view(request):
@@ -62,11 +80,9 @@ class UserDetailView(HasPermissionMixin, DetailView):
         if self.request.user.is_superuser:
             return True
         
-        # Check if viewing own profile
         if self.kwargs.get('pk') == str(self.request.user.pk):
             return self.request.user.check_permission('account.view.self')
         
-        # Check if has permission to view all users
         return self.request.user.check_permission('account.view.all')
 
 @method_decorator(login_required, name='dispatch')
@@ -88,11 +104,9 @@ class UserUpdateView(HasPermissionMixin, UpdateView):
         if self.request.user.is_superuser:
             return True
         
-        # Check if updating own profile
         if self.kwargs.get('pk') == str(self.request.user.pk):
             return self.request.user.check_permission('account.update.self')
         
-        # Check if has permission to update all users
         return self.request.user.check_permission('account.update.all')
 
 @method_decorator(login_required, name='dispatch')
@@ -102,7 +116,6 @@ class UserDeleteView(HasPermissionMixin, DeleteView):
     success_url = reverse_lazy('users:user_list')
     permission_required = 'account.delete.all'
 
-# Role management views
 @method_decorator(login_required, name='dispatch')
 class RoleListView(HasPermissionMixin, ListView):
     model = Role

@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 import os
-import yaml
 import re
 
 class CustomUserManager(BaseUserManager):
@@ -13,7 +12,7 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, password, full_name, **extra_fields):
+    def create_superuser(self, username, password, full_name=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
@@ -22,6 +21,9 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
+        
+        if full_name is None:
+            full_name = f"Admin {username}"
         
         return self.create_user(username, password, full_name, **extra_fields)
 
@@ -51,10 +53,8 @@ class User(AbstractUser):
         if not self.role:
             return False
         
-        # Get all permissions from this role and extended roles
         permissions = self._get_all_role_permissions(self.role)
         
-        # Check specific permission
         split_permission = permission.split('.')
         return self._check_split_permission(split_permission, permissions)
     
@@ -62,11 +62,9 @@ class User(AbstractUser):
         if collected_permissions is None:
             collected_permissions = {}
         
-        # Add this role's permissions
         for perm in role.permissions.all():
             collected_permissions[perm.name] = perm.is_allowed
         
-        # Add extended roles' permissions
         for extended_role in role.extends.all():
             self._get_all_role_permissions(extended_role, collected_permissions)
         
