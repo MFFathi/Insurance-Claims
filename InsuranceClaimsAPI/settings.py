@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'InsuranceClaimsRecords',
+    'InsuranceClaimsUser',
+    # 'InsuranceClaimsCustomer',
+    'InsuranceClaimsML',
+    # 'InsuranceClaimsFeedback'
 ]
 
 MIDDLEWARE = [
@@ -52,6 +57,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'InsuranceClaimsAPI.urls'
+AUTH_USER_MODEL = 'InsuranceClaimsUser.User'
 
 TEMPLATES = [
     {
