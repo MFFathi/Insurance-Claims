@@ -1,3 +1,6 @@
+# run in browser after running app.py :
+# http://127.0.0.1:5000/
+
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
