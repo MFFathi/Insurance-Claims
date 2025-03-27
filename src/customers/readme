@@ -1,0 +1,12 @@
+run in browser after running app.py
+http://127.0.0.1:5000/
+
+Flask is a micro web framework written in Python that allows us to 
+
+Build web pages using HTML/CSS
+
+Accept form submissions (like injury types, expenses)
+
+Connect to ML models or databases
+
+Return predictions or results to the browser
