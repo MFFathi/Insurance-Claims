@@ -1,0 +1,61 @@
+<!-- Right click on this file and open with Live Server -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Insurance Claim Prediction</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    Insurance Claim Prediction
+  </header>
+
+  <!-- Claim Calculator Section -->
+  <section class="claim-section">
+    <h1>Find Out Your Estimated Claim</h1>
+    <p>Use our calculator to get an estimated settlement value.</p>
+  </section>
+
+  <!-- Claim Calculator Form -->
+  <div class="calculator-container">
+    <h2>Claim Calculator</h2>
+    <p class="description">Select details about your claim to see an estimate.</p>
+
+    <form method="POST" action="#">
+      <select class="input-field" name="injury">
+        <option>Type of Injury</option>
+        <option>Minor Injury</option>
+        <option>Moderate Injury</option>
+        <option>Severe Injury</option>
+      </select>
+
+      <select class="input-field" name="earnings">
+        <option>Loss of Earnings</option>
+        <option>Less than $1,000</option>
+        <option>$1,000 - $5,000</option>
+        <option>More than $5,000</option>
+      </select>
+
+      <select class="input-field" name="expenses">
+        <option>Additional Expenses</option>
+        <option>None</option>
+        <option>Medical Costs</option>
+        <option>Legal Fees</option>
+      </select>
+
+      <button type="submit" class="submit-btn">Get Estimate</button>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    © 2025 Insurance Claim Prediction. All rights reserved.
+  </footer>
+
+</body>
+</html>

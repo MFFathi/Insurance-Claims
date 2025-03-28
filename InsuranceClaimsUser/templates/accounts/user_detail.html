@@ -1,0 +1,46 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}User Details - Insurance Claims{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>User Details</h3>
+                <div>
+                    <a href="{% url 'accounts:user_update' user_detail.pk %}" class="btn btn-warning">Edit</a>
+                    <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Back to List</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>User Information</h5>
+                        <p><strong>Username:</strong> {{ user_detail.username }}</p>
+                        <p><strong>Full Name:</strong> {{ user_detail.full_name }}</p>
+                        <p><strong>Email:</strong> {{ user_detail.email }}</p>
+                        <p><strong>Role:</strong> {{ user_detail.role.name }}</p>
+                        <p><strong>Date Joined:</strong> {{ user_detail.date_joined|date:"F j, Y" }}</p>
+                        <p><strong>Last Login:</strong> {{ user_detail.last_login|date:"F j, Y, g:i a" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Role Permissions</h5>
+                        {% if user_detail.role %}
+                            <ul class="list-group">
+                                {% for permission in user_detail.role.permissions.all %}
+                                    <li class="list-group-item {% if permission.is_allowed %}list-group-item-success{% else %}list-group-item-danger{% endif %}">
+                                        {{ permission.name }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No role assigned</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
