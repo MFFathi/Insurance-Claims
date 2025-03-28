@@ -1,0 +1,147 @@
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Insurance Claim Records</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #0066cc;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        form {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        select, button {
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        a.export {
+            padding: 6px 12px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        a.export:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: #e9ecef;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .pagination a {
+            padding: 6px 10px;
+            margin: 0 4px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+
+        .pagination a:hover {
+            background-color: #0056b3;
+        }
+
+        .pagination span {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Insurance Claim Records</h2>
+
+    <form method="get" action="{% url 'sorted_records' %}">
+        <div>
+            <label for="sort">Sort by:</label>
+            <select name="sort">
+                {% for field in fields %}
+                    <option value="{{ field }}" {% if field == sort_by %}selected{% endif %}>{{ field|capfirst }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Apply</button>
+        </div>
+        <a href="{% url 'export_csv' %}" class="export">⬇ Export CSV</a>
+    </form>
+
+    <table>
+        <thead>
+        <tr>
+            {% for field in fields %}
+                <th>{{ field|capfirst }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for record in records %}
+            <tr>
+                {% for field in fields %}
+                    <td>{{ record|get_field_value:field }}</td>
+                {% endfor %}
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="{{ fields|length }}">No records found.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% if records.has_previous %}
+            <a href="?page={{ records.previous_page_number }}&sort={{ sort_by }}">« Previous</a>
+        {% endif %}
+        <span>Page {{ records.number }} of {{ records.paginator.num_pages }}</span>
+        {% if records.has_next %}
+            <a href="?page={{ records.next_page_number }}&sort={{ sort_by }}">Next »</a>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>
