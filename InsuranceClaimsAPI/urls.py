@@ -13,4 +13,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('InsuranceClaimsUser.urls')),  # Custom user app
     path('records/', include('InsuranceClaimsRecords.urls')),  # Records app
+    path('', include('InsuranceClaimsRecords.urls')),
 ]
