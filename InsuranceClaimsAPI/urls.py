@@ -15,8 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from InsuranceClaimsUser.views import signup_view, profile_view
+
+def home_redirect(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:profile')
+    return redirect('accounts:signup')
 
 urlpatterns = [
+    path('', home_redirect, name='home'),
     path('admin/', admin.site.urls),
+    path('accounts/', include('InsuranceClaimsUser.urls')),
 ]
