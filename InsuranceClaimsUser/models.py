@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-import os
 import re
 
 class CustomUserManager(BaseUserManager):
@@ -35,9 +34,12 @@ class Role(models.Model):
         return self.name
 
 class Permission(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     is_allowed = models.BooleanField(default=True)
     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='permissions')
+    
+    class Meta:
+        unique_together = ('role', 'name')
     
     def __str__(self):
         prefix = "" if self.is_allowed else "~"
@@ -54,29 +56,28 @@ class User(AbstractUser):
             return False
         
         permissions = self._get_all_role_permissions(self.role)
-        
         split_permission = permission.split('.')
         return self._check_split_permission(split_permission, permissions)
     
     def _get_all_role_permissions(self, role, collected_permissions=None):
+        """
+        First, recursively collect permissions from parent's roles,
+        then update with the current role's permissions so that the child's
+        settings override the parent's.
+        """
         if collected_permissions is None:
             collected_permissions = {}
-        
-        for perm in role.permissions.all():
-            collected_permissions[perm.name] = perm.is_allowed
-        
         for extended_role in role.extends.all():
             self._get_all_role_permissions(extended_role, collected_permissions)
-        
+        for perm in role.permissions.all():
+            collected_permissions[perm.name] = perm.is_allowed
         return collected_permissions
     
     def _check_split_permission(self, split_permission, permissions):
         if len(split_permission) == 1:
             has_permission = permissions.get(split_permission[0])
-            
             if has_permission is not None:
                 return has_permission
-            
             return permissions.get(".*", False)
         
         permission_str = ".".join(split_permission)

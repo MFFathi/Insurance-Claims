@@ -1,0 +1,37 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Delete Account{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">Delete Account</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">Warning!</h4>
+                        <p>You are about to delete your account. This action cannot be undone.</p>
+                        <hr>
+                        <p class="mb-0">All your data will be permanently deleted.</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Enter your password to confirm</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">Delete Account</button>
+                            <a href="{% url 'accounts:profile_edit' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

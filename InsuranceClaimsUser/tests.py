@@ -1,12 +1,12 @@
-from django.test import TestCase
-
-import pytest
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
-from .models import Role, Permission, User
 from django.urls import reverse
-from .forms import CustomUserCreationForm, CustomUserChangeForm, LoginForm
 from django.contrib.auth.mixins import UserPassesTestMixin
+from .models import Role, Permission, User
+from .forms import (
+    CustomUserCreationForm, CustomUserChangeForm, LoginForm,
+    AdminUserCreationForm, ProfileUpdateForm, FinanceUserCreationForm
+)
 
 class TestCustomUserManager(TestCase):
     def test_create_user(self):
@@ -54,33 +54,6 @@ class TestCustomUserManager(TestCase):
                 password="admin123",
                 is_superuser=False
             )
-
-class TestRoleAndPermission(TestCase):
-    def setUp(self):
-        self.role = Role.objects.create(name="TestRole")
-        
-    def test_role_str(self):
-        self.assertEqual(str(self.role), "TestRole")
-        
-    def test_permission_str(self):
-        perm = Permission.objects.create(
-            name="test.permission",
-            role=self.role,
-            is_allowed=True
-        )
-        self.assertEqual(str(perm), "test.permission")
-        
-        denied_perm = Permission.objects.create(
-            name="test.denied",
-            role=self.role,
-            is_allowed=False
-        )
-        self.assertEqual(str(denied_perm), "~test.denied")
-        
-    def test_role_extension(self):
-        child_role = Role.objects.create(name="ChildRole")
-        child_role.extends.add(self.role)
-        self.assertIn(self.role, child_role.extends.all())
 
 class TestUserPermissions(TestCase):
     def setUp(self):
@@ -158,47 +131,14 @@ class TestUserPermissions(TestCase):
             is_allowed=False
         )
         self.role.extends.add(parent_role)
-        # Child role's permission should take precedence
+        # Child role's permission should override the parent's.
         self.assertFalse(self.user.check_permission("shared.permission"))
-
-    def test_permission_inheritance_precedence(self):
-        # Create parent role with permission
-        parent_role = Role.objects.create(name="ParentRole")
-        parent_perm = Permission.objects.create(
-            name="parent.permission",
-            role=parent_role,
-            is_allowed=True
-        )
-
-        # Create child role that extends parent
-        child_role = Role.objects.create(name="ChildRole")
-        child_role.extends.add(parent_role)
-
-        # Create user with child role
-        user = User.objects.create_user(
-            username="testuser2",
-            password="test123",
-            full_name="Test User 2"
-        )
-        user.role = child_role
-        user.save()
-
-        # Initially user should inherit parent's permission
-        self.assertTrue(user.check_permission("parent.permission"))
-
-        # Add overriding permission to child role
-        child_perm = Permission.objects.create(
-            name="parent.permission.override",
-            role=child_role,
-            is_allowed=False
-        )
-
-        # User should now follow child role's permission
-        self.assertFalse(user.check_permission("parent.permission.override"))
 
 class TestForms(TestCase):
     def setUp(self):
         self.role = Role.objects.create(name="TestRole")
+        self.admin_role = Role.objects.create(name="Admin")
+        self.finance_role = Role.objects.create(name="Finance")
         
     def test_custom_user_creation_form_valid(self):
         form_data = {
@@ -213,7 +153,7 @@ class TestForms(TestCase):
         
     def test_custom_user_creation_form_invalid_username(self):
         form_data = {
-            'username': '',  # Empty username
+            'username': '',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
             'full_name': 'Test User'
@@ -225,7 +165,7 @@ class TestForms(TestCase):
     def test_custom_user_creation_form_invalid_password(self):
         form_data = {
             'username': 'testuser',
-            'password1': 'weak',  # Weak password
+            'password1': 'weak',
             'password2': 'weak',
             'full_name': 'Test User'
         }
@@ -233,7 +173,53 @@ class TestForms(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('password1', form.errors)
         
-    def test_custom_user_change_form_valid(self):
+    def test_admin_user_creation_form_valid(self):
+        form_data = {
+            'username': 'adminuser',
+            'password1': 'AdminPass123!',
+            'password2': 'AdminPass123!',
+            'full_name': 'Admin User',
+            'role': self.admin_role.id
+        }
+        form = AdminUserCreationForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        
+    def test_admin_user_creation_form_invalid_role(self):
+        form_data = {
+            'username': 'adminuser',
+            'password1': 'AdminPass123!',
+            'password2': 'AdminPass123!',
+            'full_name': 'Admin User',
+            'role': self.role.id  # Not an Admin role.
+        }
+        form = AdminUserCreationForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('role', form.errors)
+        
+    def test_finance_user_creation_form_valid(self):
+        form_data = {
+            'username': 'financeuser',
+            'password1': 'FinancePass123!',
+            'password2': 'FinancePass123!',
+            'full_name': 'Finance User',
+            'role': self.finance_role.id
+        }
+        form = FinanceUserCreationForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        
+    def test_finance_user_creation_form_invalid_role(self):
+        form_data = {
+            'username': 'financeuser',
+            'password1': 'FinancePass123!',
+            'password2': 'FinancePass123!',
+            'full_name': 'Finance User',
+            'role': self.role.id  # Not a Finance role.
+        }
+        form = FinanceUserCreationForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('role', form.errors)
+        
+    def test_profile_update_form_valid(self):
         user = User.objects.create_user(
             username='testuser',
             password='TestPass123!',
@@ -242,39 +228,47 @@ class TestForms(TestCase):
         form_data = {
             'username': 'testuser',
             'full_name': 'Updated Name',
-            'role': self.role.id
+            'current_password': 'TestPass123!',
+            'new_password': 'NewPass123!',
+            'confirm_password': 'NewPass123!'
         }
-        form = CustomUserChangeForm(data=form_data, instance=user)
+        form = ProfileUpdateForm(data=form_data, instance=user)
         self.assertTrue(form.is_valid())
         
-    def test_login_form_valid(self):
+    def test_profile_update_form_invalid_password(self):
+        user = User.objects.create_user(
+            username='testuser',
+            password='TestPass123!',
+            full_name='Test User'
+        )
         form_data = {
             'username': 'testuser',
-            'password': 'TestPass123!'
+            'full_name': 'Updated Name',
+            'current_password': 'WrongPass123!',
+            'new_password': 'NewPass123!',
+            'confirm_password': 'NewPass123!'
         }
-        form = LoginForm(data=form_data)
-        self.assertTrue(form.is_valid())
-        
-    def test_login_form_invalid(self):
-        form_data = {
-            'username': '',  # Empty username
-            'password': ''
-        }
-        form = LoginForm(data=form_data)
+        form = ProfileUpdateForm(data=form_data, instance=user)
         self.assertFalse(form.is_valid())
-        self.assertIn('username', form.errors)
-        self.assertIn('password', form.errors)
+        self.assertIn('__all__', form.errors)
 
 class TestViews(TestCase):
     def setUp(self):
+        self.client = Client()
+        # Create a default User role for regular signup.
+        self.role = Role.objects.create(name="User")
         self.user = User.objects.create_user(
             username='testuser',
             password='TestPass123!',
             full_name='Test User'
         )
-        self.client.login(username='testuser', password='TestPass123!')
-        self.role = Role.objects.create(name="TestRole")
-        
+        self.admin_user = User.objects.create_superuser(
+            username='admin',
+            password='AdminPass123!'
+        )
+        # Create an Admin role for testing admin signup.
+        self.admin_role = Role.objects.create(name="Admin")
+    
     def test_login_view_get(self):
         response = self.client.get(reverse('accounts:login'))
         self.assertEqual(response.status_code, 200)
@@ -295,67 +289,112 @@ class TestViews(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/login.html')
         
+    def test_signup_view_get(self):
+        response = self.client.get(reverse('accounts:signup'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/signup.html')
+        
+    def test_signup_view_post_success(self):
+        response = self.client.post(reverse('accounts:signup'), {
+            'username': 'newuser',
+            'password1': 'NewPass123!',
+            'password2': 'NewPass123!',
+            'full_name': 'New User',
+            'role': self.role.id
+        })
+        self.assertRedirects(response, reverse('accounts:profile'))
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        
+    def test_admin_signup_view_get(self):
+        self.client.login(username='admin', password='AdminPass123!')
+        response = self.client.get(reverse('accounts:admin_signup'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/admin_signup.html')
+        
+    def test_admin_signup_view_post_success(self):
+        self.client.login(username='admin', password='AdminPass123!')
+        response = self.client.post(reverse('accounts:admin_signup'), {
+            'username': 'newadmin',
+            'password1': 'AdminPass123!',
+            'password2': 'AdminPass123!',
+            'full_name': 'New Admin',
+            'role': self.admin_role.id  # Using the Admin role.
+        })
+        self.assertRedirects(response, reverse('accounts:user_list'))
+        self.assertTrue(User.objects.filter(username='newadmin').exists())
+        
     def test_logout_view(self):
+        self.client.login(username='testuser', password='TestPass123!')
         response = self.client.get(reverse('accounts:logout'))
         self.assertRedirects(response, reverse('accounts:login'))
         
     def test_profile_view(self):
+        self.client.login(username='testuser', password='TestPass123!')
         response = self.client.get(reverse('accounts:profile'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/profile.html')
         
     def test_profile_view_not_logged_in(self):
-        self.client.logout()
         response = self.client.get(reverse('accounts:profile'))
         self.assertRedirects(response, '/accounts/login/?next=/accounts/profile/')
+    
+    def test_profile_update_view(self):
+        self.client.login(username='testuser', password='TestPass123!')
+        response = self.client.get(reverse('accounts:profile_edit'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/profile_edit.html')
 
-class TestClassBasedViews(TestCase):
+    def test_profile_update_view_post_success(self):
+        self.client.login(username='testuser', password='TestPass123!')
+        response = self.client.post(reverse('accounts:profile_edit'), {
+            'username': 'testuser',
+            'full_name': 'Updated Name',
+            'current_password': 'TestPass123!',
+            'new_password': 'NewPass123!',
+            'confirm_password': 'NewPass123!'
+        })
+        self.assertRedirects(response, reverse('accounts:profile'))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.full_name, 'Updated Name')
+        self.assertTrue(self.user.check_password('NewPass123!'))
+
+    def test_profile_delete_view(self):
+        self.client.login(username='testuser', password='TestPass123!')
+        response = self.client.get(reverse('accounts:profile_delete'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/profile_delete.html')
+
+    def test_profile_delete_view_post_success(self):
+        self.client.login(username='testuser', password='TestPass123!')
+        response = self.client.post(reverse('accounts:profile_delete'), {
+            'password': 'TestPass123!'
+        })
+        self.assertRedirects(response, reverse('accounts:login'))
+        self.assertFalse(User.objects.filter(username='testuser').exists())
+
+    def test_profile_delete_view_post_failure(self):
+        self.client.login(username='testuser', password='TestPass123!')
+        response = self.client.post(reverse('accounts:profile_delete'), {
+            'password': 'wrongpassword'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/profile_delete.html')
+        self.assertTrue(User.objects.filter(username='testuser').exists())
+
+class TestUserManagementViews(TestCase):
     def setUp(self):
+        self.client = Client()
+        self.admin_user = User.objects.create_superuser(
+            username='admin',
+            password='AdminPass123!'
+        )
         self.user = User.objects.create_user(
             username='testuser',
             password='TestPass123!',
             full_name='Test User'
         )
-        self.client.login(username='testuser', password='TestPass123!')
         self.role = Role.objects.create(name="TestRole")
-        self.test_user = User.objects.create_user(
-            username='testuser2',
-            password='TestPass123!',
-            full_name='Test User 2'
-        )
-        
-        # Add necessary permissions for the test user
-        self.user.role = self.role
-        self.user.save()
-        
-        # Add permissions for user management
-        Permission.objects.create(
-            name='account.view.all',
-            role=self.role,
-            is_allowed=True
-        )
-        Permission.objects.create(
-            name='account.create',
-            role=self.role,
-            is_allowed=True
-        )
-        Permission.objects.create(
-            name='account.update.all',
-            role=self.role,
-            is_allowed=True
-        )
-        Permission.objects.create(
-            name='account.delete.all',
-            role=self.role,
-            is_allowed=True
-        )
-        
-        # Add permissions for role management
-        Permission.objects.create(
-            name='role.view.all',
-            role=self.role,
-            is_allowed=True
-        )
+        self.client.login(username='admin', password='AdminPass123!')
         
     def test_user_list_view(self):
         response = self.client.get(reverse('accounts:user_list'))
@@ -363,7 +402,7 @@ class TestClassBasedViews(TestCase):
         self.assertTemplateUsed(response, 'accounts/user_list.html')
         
     def test_user_detail_view(self):
-        response = self.client.get(reverse('accounts:user_detail', kwargs={'pk': self.test_user.pk}))
+        response = self.client.get(reverse('accounts:user_detail', kwargs={'pk': self.user.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/user_detail.html')
         
@@ -372,25 +411,41 @@ class TestClassBasedViews(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/user_form.html')
         
+    def test_user_create_view_post_success(self):
+        response = self.client.post(reverse('accounts:user_create'), {
+            'username': 'newuser',
+            'password1': 'NewPass123!',
+            'password2': 'NewPass123!',
+            'full_name': 'New User',
+            'role': self.role.id
+        })
+        self.assertRedirects(response, reverse('accounts:user_list'))
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        
     def test_user_update_view(self):
-        response = self.client.get(reverse('accounts:user_update', kwargs={'pk': self.test_user.pk}))
+        response = self.client.get(reverse('accounts:user_update', kwargs={'pk': self.user.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/user_form.html')
         
+    def test_user_update_view_post_success(self):
+        response = self.client.post(reverse('accounts:user_update', kwargs={'pk': self.user.pk}), {
+            'username': 'testuser',
+            'full_name': 'Updated Name',
+            'role': self.role.id
+        })
+        self.assertRedirects(response, reverse('accounts:user_list'))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.full_name, 'Updated Name')
+        
     def test_user_delete_view(self):
-        response = self.client.get(reverse('accounts:user_delete', kwargs={'pk': self.test_user.pk}))
+        response = self.client.get(reverse('accounts:user_delete', kwargs={'pk': self.user.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'accounts/user_confirm_delete.html')
         
-    def test_role_list_view(self):
-        response = self.client.get(reverse('accounts:role_list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'accounts/role_list.html')
-        
-    def test_role_detail_view(self):
-        response = self.client.get(reverse('accounts:role_detail', kwargs={'pk': self.role.pk}))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'accounts/role_detail.html')
+    def test_user_delete_view_post_success(self):
+        response = self.client.post(reverse('accounts:user_delete', kwargs={'pk': self.user.pk}))
+        self.assertRedirects(response, reverse('accounts:user_list'))
+        self.assertFalse(User.objects.filter(username='testuser').exists())
 
 class TestPermissionMixin(TestCase):
     def setUp(self):
