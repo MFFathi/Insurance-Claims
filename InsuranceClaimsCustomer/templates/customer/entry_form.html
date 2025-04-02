@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Claim Entry</title>
+  <link rel="stylesheet" href="/static/InsuranceClaimsCustomer/customer_styles.css">
+</head>
+<body>
+
+  <h1>Estimate Your Insurance Claim</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+  </form>
+
+  {% if prediction %}
+    <h2>Estimated Settlement:</h2>
+    <p>{{ prediction }}</p>
+  {% endif %}
+
+</body>
+</html>

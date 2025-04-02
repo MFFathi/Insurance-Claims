@@ -1,7 +1,7 @@
 from django import forms
-from .models import ClaimEntry
+from .models import Claim
 
-class ClaimEntryForm(forms.ModelForm):
+class ClaimForm(forms.ModelForm):
     class Meta:
-        model = ClaimEntry
-        fields = ['accident_type', 'injury_prognosis', 'expense']
+        model = Claim
+        fields = ['injury', 'earnings', 'expenses']
