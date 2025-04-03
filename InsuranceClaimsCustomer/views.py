@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .form import ClaimForm
+from .forms import ClaimForm
 
 def claim_entry(request):
     prediction = None

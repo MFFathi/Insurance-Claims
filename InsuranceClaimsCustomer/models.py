@@ -1,28 +1,43 @@
 from django.db import models
 
-class Claim(models.Model):
-    INJURY_CHOICES = [
-        ('minor', 'Minor Injury'),
-        ('moderate', 'Moderate Injury'),
-        ('severe', 'Severe Injury'),
-    ]
 
-    EARNINGS_CHOICES = [
-        ('low', 'Less than $1,000'),
-        ('medium', '$1,000 - $5,000'),
-        ('high', 'More than $5,000'),
-    ]
-
-    EXPENSES_CHOICES = [
-        ('none', 'None'),
-        ('medical', 'Medical Costs'),
-        ('legal', 'Legal Fees'),
-    ]
-
-    injury = models.CharField(max_length=50, choices=INJURY_CHOICES)
-    earnings = models.CharField(max_length=50, choices=EARNINGS_CHOICES)
-    expenses = models.CharField(max_length=50, choices=EXPENSES_CHOICES)
-    submitted_at = models.DateTimeField(auto_now_add=True)
+class InsuranceClaim(models.Model):
+    SettlementValue = models.FloatField(blank=True, null=True)
+    AccidentType = models.CharField(max_length=255, blank=True, null=True)
+    Injury_Prognosis = models.CharField(max_length=255, blank=True, null=True)
+    SpecialHealthExpenses = models.FloatField(blank=True, null=True)
+    SpecialReduction = models.FloatField(blank=True, null=True)
+    SpecialOverage = models.FloatField(blank=True, null=True)
+    GeneralRest = models.FloatField(blank=True, null=True)
+    SpecialAdditionalInjury = models.FloatField(blank=True, null=True)
+    SpecialEarningsLoss = models.FloatField(blank=True, null=True)
+    SpecialUsageLoss = models.FloatField(blank=True, null=True)
+    SpecialMedications = models.FloatField(blank=True, null=True)
+    SpecialAssetDamage = models.FloatField(blank=True, null=True)
+    SpecialRehabilitation = models.FloatField(blank=True, null=True)
+    SpecialFixes = models.FloatField(blank=True, null=True)
+    GeneralFixed = models.FloatField(blank=True, null=True)
+    GeneralUplift = models.FloatField(blank=True, null=True)
+    SpecialLoanerVehicle = models.FloatField(blank=True, null=True)
+    SpecialTripCosts = models.FloatField(blank=True, null=True)
+    SpecialJourneyExpenses = models.FloatField(blank=True, null=True)
+    SpecialTherapy = models.FloatField(blank=True, null=True)
+    Exceptional_Circumstances = models.CharField(max_length=255, blank=True, null=True)
+    Minor_Psychological_Injury = models.CharField(max_length=255, blank=True, null=True)
+    Dominant_injury = models.CharField(max_length=255, blank=True, null=True)
+    Whiplash = models.CharField(max_length=255, blank=True, null=True)
+    Vehicle_Type = models.CharField(max_length=255, blank=True, null=True)
+    Weather_Conditions = models.CharField(max_length=255, blank=True, null=True)
+    Accident_Date = models.DateTimeField(blank=True, null=True)
+    Claim_Date = models.DateTimeField(blank=True, null=True)
+    Vehicle_Age = models.FloatField(blank=True, null=True)
+    Driver_Age = models.FloatField(blank=True, null=True)
+    Number_of_Passengers = models.FloatField(blank=True, null=True)
+    Accident_Description = models.CharField(max_length=255, blank=True, null=True)
+    Injury_Description = models.CharField(max_length=255, blank=True, null=True)
+    Police_Report_Filed = models.CharField(max_length=255, blank=True, null=True)
+    Witness_Present = models.CharField(max_length=255, blank=True, null=True)
+    Gender = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.injury} | {self.earnings} | {self.expenses}"
+        return f"Claim by {self.Gender} on {self.Accident_Date}"
