@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import ClaimEntryForm
+from .form import ClaimEntryForm
 
 def claim_entry_view(request):
     if request.method == 'POST':
