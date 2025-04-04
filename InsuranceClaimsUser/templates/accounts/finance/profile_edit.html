@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Edit Profile{% endblock %}
+{% block title %}Edit Finance Profile{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,7 +8,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <h2 class="mb-0">Edit Profile</h2>
+                    <h2 class="mb-0">Edit Finance Profile</h2>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -31,6 +31,20 @@
                             </div>
                             {% endif %}
                         {% endfor %}
+                        
+                        <h4 class="mb-3 mt-4">Finance Settings</h4>
+                        <div class="mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <select name="department" id="department" class="form-select">
+                                <option value="claims" {% if user.department == 'claims' %}selected{% endif %}>Claims Processing</option>
+                                <option value="underwriting" {% if user.department == 'underwriting' %}selected{% endif %}>Underwriting</option>
+                                <option value="risk_assessment" {% if user.department == 'risk_assessment' %}selected{% endif %}>Risk Assessment</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="processing_limit" class="form-label">Processing Limit</label>
+                            <input type="number" name="processing_limit" id="processing_limit" class="form-control" value="{{ user.processing_limit|default:'10000' }}">
+                        </div>
                         
                         <h4 class="mb-3 mt-4">Change Password</h4>
                         <div class="mb-3">

@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Edit Profile{% endblock %}
+{% block title %}Edit Admin Profile{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,7 +8,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <h2 class="mb-0">Edit Profile</h2>
+                    <h2 class="mb-0">Edit Admin Profile</h2>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -31,6 +31,15 @@
                             </div>
                             {% endif %}
                         {% endfor %}
+                        
+                        <h4 class="mb-3 mt-4">Admin Settings</h4>
+                        <div class="mb-3">
+                            <label for="admin_level" class="form-label">Admin Level</label>
+                            <select name="admin_level" id="admin_level" class="form-select">
+                                <option value="standard" {% if user.admin_level == 'standard' %}selected{% endif %}>Standard</option>
+                                <option value="super" {% if user.admin_level == 'super' %}selected{% endif %}>Super Admin</option>
+                            </select>
+                        </div>
                         
                         <h4 class="mb-3 mt-4">Change Password</h4>
                         <div class="mb-3">

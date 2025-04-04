@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Edit Profile{% endblock %}
+{% block title %}Edit User Profile{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,7 +8,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <h2 class="mb-0">Edit Profile</h2>
+                    <h2 class="mb-0">Edit User Profile</h2>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -31,6 +31,31 @@
                             </div>
                             {% endif %}
                         {% endfor %}
+                        
+                        <h4 class="mb-3 mt-4">Policy Information</h4>
+                        <div class="mb-3">
+                            <label for="policy_number" class="form-label">Policy Number</label>
+                            <input type="text" name="policy_number" id="policy_number" class="form-control" value="{{ user.policy_number|default:'' }}" readonly>
+                            <div class="form-text">Policy number cannot be changed. Please contact support if you need assistance.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="policy_type" class="form-label">Policy Type</label>
+                            <input type="text" name="policy_type" id="policy_type" class="form-control" value="{{ user.policy_type|default:'' }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="coverage_amount" class="form-label">Coverage Amount</label>
+                            <input type="text" name="coverage_amount" id="coverage_amount" class="form-control" value="{{ user.coverage_amount|default:'' }}" readonly>
+                        </div>
+                        
+                        <h4 class="mb-3 mt-4">Contact Information</h4>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" name="phone" id="phone" class="form-control" value="{{ user.phone|default:'' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea name="address" id="address" class="form-control" rows="3">{{ user.address|default:'' }}</textarea>
+                        </div>
                         
                         <h4 class="mb-3 mt-4">Change Password</h4>
                         <div class="mb-3">
