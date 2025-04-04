@@ -1,13 +1,19 @@
+<<<<<<< HEAD
 from django.shortcuts import render, redirect
 from .form import ClaimEntryForm
+=======
+from django.shortcuts import render
+from .forms import ClaimForm
+>>>>>>> 997d5fc6aed43fcfed3d677841e63a55040578c3
 
-def claim_entry_view(request):
+def claim_entry(request):
+    prediction = None
     if request.method == 'POST':
-        form = ClaimEntryForm(request.POST)
+        form = ClaimForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('claim_success')  # Create this URL/view later
+            prediction = "$6,700 (estimated)"
     else:
-        form = ClaimEntryForm()
-    
-    return render(request, 'claims/entry_form.html', {'form': form})
+        form = ClaimForm()
+
+    return render(request, 'customer/entry_form.html', {'form': form, 'prediction': prediction})
