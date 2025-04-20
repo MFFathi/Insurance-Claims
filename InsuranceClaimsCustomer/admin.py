@@ -1,15 +1,13 @@
 from django.contrib import admin
-from .models import InsuranceClaim
+from .models import InsuranceClaim, CustomerClaim
 
-# Prevent double registration
-from django.contrib.admin.sites import AlreadyRegistered
+@admin.register(InsuranceClaim)
+class InsuranceClaimAdmin(admin.ModelAdmin):
+    list_display = ['accident_type', 'injury_prognosis', 'settlement_value']
+    search_fields = ['accident_type', 'injury_prognosis']
 
-try:
-    @admin.register(InsuranceClaim)
-    class InsuranceClaimAdmin(admin.ModelAdmin):
-        list_display = ('id', 'Gender', 'Accident_Date', 'Claim_Date')
-        search_fields = ('Gender', 'AccidentType')
-        list_filter = ('Gender', 'Accident_Date')
-
-except AlreadyRegistered:
-    pass
+@admin.register(CustomerClaim)
+class CustomerClaimAdmin(admin.ModelAdmin):
+    list_display = ['AccidentType', 'Driver_Age', 'Vehicle_Age', 'Gender']
+    search_fields = ['AccidentType', 'Gender']
+    list_filter = ['Gender']

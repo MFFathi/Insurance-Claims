@@ -1,55 +1,63 @@
+import pandas as pd
 from django import forms
-from .models import InsuranceClaim
+from .models import CustomerClaim
+import os
 
-class ClaimForm(forms.ModelForm):
-    GENDER_CHOICES = [
-        ('Male', 'Male'),
-        ('Female', 'Female'),
-    ]
+# Load CSV from correct path
+CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'MLModel', 'Patient_records.csv')
+df = pd.read_csv(CSV_PATH)
 
-    Gender = forms.ChoiceField(
-        choices=GENDER_CHOICES,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
+def get_unique_choices(column_name, fallback="N/A"):
+    try:
+        values = df[column_name].dropna().unique()
+        if len(values) == 0:
+            return [(fallback, fallback)]
+        return [(v, v) for v in sorted(values)]
+    except KeyError:
+        return [(fallback, fallback)]
 
-    Police_Report_Filed = forms.BooleanField(required=False, widget=forms.CheckboxInput())
-    Witness_Present = forms.BooleanField(required=False, widget=forms.CheckboxInput())
-    Whiplash = forms.BooleanField(required=False, widget=forms.CheckboxInput())
-    Exceptional_Circumstances = forms.BooleanField(required=False, widget=forms.CheckboxInput())
-    Minor_Psychological_Injury = forms.BooleanField(required=False, widget=forms.CheckboxInput())
-
+class CustomerClaimForm(forms.ModelForm):
     class Meta:
-        model = InsuranceClaim
-        exclude = ['SettlementValue']
-        widgets = {
-            'AccidentType': forms.TextInput(attrs={'class': 'form-control'}),
-            'Injury_Prognosis': forms.TextInput(attrs={'class': 'form-control'}),
-            'SpecialHealthExpenses': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialReduction': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialOverage': forms.NumberInput(attrs={'class': 'form-control'}),
-            'GeneralRest': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialAdditionalInjury': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialEarningsLoss': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialUsageLoss': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialMedications': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialAssetDamage': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialRehabilitation': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialFixes': forms.NumberInput(attrs={'class': 'form-control'}),
-            'GeneralFixed': forms.NumberInput(attrs={'class': 'form-control'}),
-            'GeneralUplift': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialLoanerVehicle': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialTripCosts': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialJourneyExpenses': forms.NumberInput(attrs={'class': 'form-control'}),
-            'SpecialTherapy': forms.NumberInput(attrs={'class': 'form-control'}),
-            'Dominant_injury': forms.TextInput(attrs={'class': 'form-control'}),
-            'Vehicle_Type': forms.TextInput(attrs={'class': 'form-control'}),
-            'Weather_Conditions': forms.TextInput(attrs={'class': 'form-control'}),
-            'Accident_Date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'Claim_Date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'Vehicle_Age': forms.NumberInput(attrs={'class': 'form-control'}),
-            'Driver_Age': forms.NumberInput(attrs={'class': 'form-control'}),
-            'Number_of_Passengers': forms.NumberInput(attrs={'class': 'form-control'}),
-            'Accident_Description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'Injury_Description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        model = CustomerClaim
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(CustomerClaimForm, self).__init__(*args, **kwargs)
+
+        dropdown_fields = {
+            'AccidentType': 'AccidentType',
+            'Injury_Prognosis': 'Injury_Prognosis',
+            'Exceptional_Circumstances': 'Exceptional_Circumstances',
+            'Minor_Psychological_Injury': 'Minor_Psychological_Injury',
+            'Dominant_injury': 'Dominant injury',
+            'Whiplash': 'Whiplash',
+            'Vehicle_Type': 'Vehicle Type',
+            'Weather_Conditions': 'Weather Conditions',
+            'Accident_Description': 'Accident Description',
+            'Injury_Description': 'Injury Description',
+            'Police_Report_Filed': 'Police Report Filed',
+            'Witness_Present': 'Witness Present',
+            'Gender': 'Gender',
         }
+
+        numeric_fields = [
+            'Driver_Age', 'Vehicle_Age', 'Number_of_Passengers',
+            'SpecialHealthExpenses', 'SpecialReduction', 'SpecialOverage',
+            'GeneralRest', 'SpecialAdditionalInjury', 'SpecialEarningsLoss',
+            'SpecialUsageLoss', 'SpecialMedications', 'SpecialAssetDamage',
+            'SpecialRehabilitation', 'SpecialFixes', 'GeneralFixed',
+            'GeneralUplift', 'SpecialLoanerVehicle', 'SpecialTripCosts',
+            'SpecialJourneyExpenses', 'SpecialTherapy'
+        ]
+
+        for field in numeric_fields:
+            self.fields[field].widget = forms.NumberInput(attrs={'class': 'form-control', 'step': 1})
+
+        # Set calendar input for the two date fields
+        self.fields['Accident_Date'].widget = forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+        self.fields['Claim_Date'].widget = forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+
+        # All other dropdowns populated from CSV
+        for field, column in dropdown_fields.items():
+            choices = get_unique_choices(column)
+            self.fields[field].widget = forms.Select(choices=choices, attrs={'class': 'form-control'})

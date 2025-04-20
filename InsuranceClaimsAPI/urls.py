@@ -5,6 +5,7 @@ from InsuranceClaimsUser.views import signup_view, profile_view
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 def home_redirect(request):
     if request.user.is_authenticated:
         return redirect('accounts:profile')
