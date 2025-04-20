@@ -44,9 +44,9 @@ def customer_claim_view(request):
             try:
                 prediction = model.predict(df)[0]
             except Exception as e:
-                print("🔥 Prediction error:", e)
+                print("Prediction error:", e)
         else:
-            print("❌ Form invalid:", form.errors)
+            print(" Form invalid:", form.errors)
     else:
         form = CustomerClaimForm()
 
