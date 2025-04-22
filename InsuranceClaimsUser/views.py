@@ -77,41 +77,37 @@ def logout_view(request):
 def profile_view(request):
     return render(request, 'accounts/profile.html')
 
-class HasPermissionMixin(UserPassesTestMixin):
-    permission_required = None
-    
-    def test_func(self):
-        if self.request.user.is_superuser:
-            return True
-        return self.request.user.check_permission(self.permission_required)
-
 @method_decorator(login_required, name='dispatch')
-class UserListView(HasPermissionMixin, ListView):
+class UserListView(UserPassesTestMixin, ListView):
     model = User
     template_name = 'accounts/user_list.html'
     context_object_name = 'users'
-    permission_required = 'account.view.all'
+    
+    def test_func(self):
+        return is_admin(self.request.user)
 
 @method_decorator(login_required, name='dispatch')
-class UserDetailView(HasPermissionMixin, DetailView):
+class UserDetailView(UserPassesTestMixin, DetailView):
     model = User
     template_name = 'accounts/user_detail.html'
     context_object_name = 'user_detail'
     
     def test_func(self):
-        if self.request.user.is_superuser:
+        if is_admin(self.request.user):
             return True
         if self.kwargs.get('pk') == str(self.request.user.pk):
             return self.request.user.check_permission('account.view.self')
-        return self.request.user.check_permission('account.view.all')
+        return False
 
 @method_decorator(login_required, name='dispatch')
-class UserCreateView(HasPermissionMixin, CreateView):
+class UserCreateView(UserPassesTestMixin, CreateView):
     model = User
     form_class = CustomUserCreationForm
     template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
-    permission_required = 'account.create'
+    
+    def test_func(self):
+        return is_admin(self.request.user)
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -131,29 +127,55 @@ class UserCreateView(HasPermissionMixin, CreateView):
 class UserUpdateView(UserPassesTestMixin, UpdateView):
     model = User
     form_class = CustomUserChangeForm
-    template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
     
     def test_func(self):
-        if self.request.user.is_superuser:
+        if is_admin(self.request.user):
             return True
-        if self.kwargs.get('pk') == str(self.request.user.pk):
+        if str(self.kwargs.get('pk')) == str(self.request.user.pk):
             return self.request.user.check_permission('account.update.self')
-        return self.request.user.check_permission('account.update.all')
+        return False
+
+    def get_template_names(self):
+        # If admin is editing another user, use admin template
+        if is_admin(self.request.user) and str(self.kwargs.get('pk')) != str(self.request.user.pk):
+            return ['accounts/admin/user_form.html']
+        # Otherwise use the regular user form template
+        return ['accounts/user_form.html']
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if not is_admin(self.request.user):
+            # Only admin users can change roles
+            if 'role' in form.fields:
+                form.fields['role'].disabled = True
+        return form
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'User updated successfully!')
-        if self.kwargs.get('pk') == str(self.request.user.pk):
+        # Store the current user and target user
+        current_user = self.request.user
+        target_user = self.get_object()
+        
+        # If we're updating our own profile
+        if str(target_user.pk) == str(current_user.pk):
+            response = super().form_valid(form)
+            # Update session auth hash to maintain the session
+            update_session_auth_hash(self.request, self.object)
             return redirect('accounts:profile')
-        return response
+        else:
+            # If we're updating another user, don't affect the current session
+            response = super().form_valid(form)
+            messages.success(self.request, f'User {target_user.username} updated successfully!')
+            return redirect('accounts:user_list')
 
 @method_decorator(login_required, name='dispatch')
-class UserDeleteView(HasPermissionMixin, DeleteView):
+class UserDeleteView(UserPassesTestMixin, DeleteView):
     model = User
     template_name = 'accounts/user_confirm_delete.html'
     success_url = reverse_lazy('accounts:user_list')
-    permission_required = 'account.delete.all'
+    
+    def test_func(self):
+        return is_admin(self.request.user)
 
 @method_decorator(login_required, name='dispatch')
 class ProfileUpdateView(UpdateView):

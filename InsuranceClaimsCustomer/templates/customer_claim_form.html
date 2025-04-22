@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Insurance Claim Form</title>
+    <link rel="stylesheet" href="{% static 'InsuranceClaimsCustomer/customer_styles.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5 mb-5">
+    <h1 class="mb-4">Submit Insurance Claim</h1>
+    <form method="POST">
+        {% csrf_token %}
+
+        <fieldset class="border p-4 mb-4">
+            <legend class="w-auto px-2">Accident Information</legend>
+            <div class="mb-3">{{ form.Accident_Date.label_tag }} {{ form.Accident_Date }}</div>
+            <div class="mb-3">{{ form.AccidentType.label_tag }} {{ form.AccidentType }}</div>
+            <div class="mb-3">{{ form.Accident_Description.label_tag }} {{ form.Accident_Description }}</div>
+            <div class="mb-3">{{ form.Weather_Conditions.label_tag }} {{ form.Weather_Conditions }}</div>
+        </fieldset>
+
+        <fieldset class="border p-4 mb-4">
+            <legend class="w-auto px-2">Driver & Vehicle Information</legend>
+            <div class="mb-3">{{ form.Driver_Age.label_tag }} {{ form.Driver_Age }}</div>
+            <div class="mb-3">{{ form.Gender.label_tag }} {{ form.Gender }}</div>
+            <div class="mb-3">{{ form.Vehicle_Age.label_tag }} {{ form.Vehicle_Age }}</div>
+            <div class="mb-3">{{ form.Vehicle_Type.label_tag }} {{ form.Vehicle_Type }}</div>
+            <div class="mb-3">{{ form.Number_of_Passengers.label_tag }} {{ form.Number_of_Passengers }}</div>
+        </fieldset>
+
+        <fieldset class="border p-4 mb-4">
+            <legend class="w-auto px-2">Medical & Financial Information</legend>
+            <div class="mb-3">{{ form.Injury_Prognosis.label_tag }} {{ form.Injury_Prognosis }}</div>
+            <div class="mb-3">{{ form.Injury_Description.label_tag }} {{ form.Injury_Description }}</div>
+            <div class="mb-3">{{ form.SpecialHealthExpenses.label_tag }} {{ form.SpecialHealthExpenses }}</div>
+            <div class="mb-3">{{ form.SpecialReduction.label_tag }} {{ form.SpecialReduction }}</div>
+            <div class="mb-3">{{ form.SpecialOverage.label_tag }} {{ form.SpecialOverage }}</div>
+            <div class="mb-3">{{ form.GeneralRest.label_tag }} {{ form.GeneralRest }}</div>
+            <div class="mb-3">{{ form.SpecialAdditionalInjury.label_tag }} {{ form.SpecialAdditionalInjury }}</div>
+            <div class="mb-3">{{ form.SpecialEarningsLoss.label_tag }} {{ form.SpecialEarningsLoss }}</div>
+            <div class="mb-3">{{ form.SpecialUsageLoss.label_tag }} {{ form.SpecialUsageLoss }}</div>
+            <div class="mb-3">{{ form.SpecialMedications.label_tag }} {{ form.SpecialMedications }}</div>
+            <div class="mb-3">{{ form.SpecialAssetDamage.label_tag }} {{ form.SpecialAssetDamage }}</div>
+            <div class="mb-3">{{ form.SpecialTherapy.label_tag }} {{ form.SpecialTherapy }}</div>
+            <div class="mb-3">{{ form.SpecialRehabilitation.label_tag }} {{ form.SpecialRehabilitation }}</div>
+            <div class="mb-3">{{ form.SpecialTripCosts.label_tag }} {{ form.SpecialTripCosts }}</div>
+            <div class="mb-3">{{ form.SpecialJourneyExpenses.label_tag }} {{ form.SpecialJourneyExpenses }}</div>
+            <div class="mb-3">{{ form.SpecialFixes.label_tag }} {{ form.SpecialFixes }}</div>
+            <div class="mb-3">{{ form.GeneralFixed.label_tag }} {{ form.GeneralFixed }}</div>
+            <div class="mb-3">{{ form.GeneralUplift.label_tag }} {{ form.GeneralUplift }}</div>
+            <div class="mb-3">{{ form.SpecialLoanerVehicle.label_tag }} {{ form.SpecialLoanerVehicle }}</div>
+            <div class="mb-3">{{ form.Whiplash.label_tag }} {{ form.Whiplash }}</div>
+            <div class="mb-3">{{ form.Dominant_injury.label_tag }} {{ form.Dominant_injury }}</div>
+        </fieldset>
+
+        <fieldset class="border p-4 mb-4">
+            <legend class="w-auto px-2">Verification & Additional</legend>
+            <div class="form-check mb-2">{{ form.Police_Report_Filed }} {{ form.Police_Report_Filed.label_tag }}</div>
+            <div class="form-check mb-2">{{ form.Witness_Present }} {{ form.Witness_Present.label_tag }}</div>
+            <div class="form-check mb-2">{{ form.Exceptional_Circumstances }} {{ form.Exceptional_Circumstances.label_tag }}</div>
+            <div class="form-check mb-2">{{ form.Minor_Psychological_Injury }} {{ form.Minor_Psychological_Injury.label_tag }}</div>
+            <div class="mb-3">{{ form.Claim_Date.label_tag }} {{ form.Claim_Date }}</div>
+            <div class="mb-3">{{ form.SettlementValue.label_tag }} {{ form.SettlementValue }}</div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+
+        {% if prediction is not None %}
+            <div class="alert alert-success mt-4">
+                <h4>Predicted Settlement Value: {{ prediction|floatformat:2 }}</h4>
+            </div>
+        {% endif %}
+    </form>
+</body>
+</html>

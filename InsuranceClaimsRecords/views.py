@@ -1,10 +1,24 @@
 from django.core.paginator import Paginator
-from django.shortcuts import render
-from .models import Record
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
+from django.contrib import messages
 import csv
+from .models import Record
 
+def has_record_permission(user):
+    return user.is_authenticated and (
+        user.is_superuser or 
+        user.role.name in ['Admin', 'Finance']
+    )
+
+@login_required
 def sorted_records(request):
+    if not has_record_permission(request.user):
+        messages.error(request, "You don't have permission to view records.")
+        return redirect('accounts:login')
+        
     sort_by = request.GET.get('sort', 'accident_date')
     records_list = Record.objects.all().order_by(sort_by)
 
@@ -21,7 +35,12 @@ def sorted_records(request):
         'sort_by': sort_by
     })
 
+@login_required
 def export_records_csv(request):
+    if not (request.user.is_superuser or request.user.role.name in ['Admin', 'Finance']):
+        messages.error(request, "You don't have permission to export records.")
+        return redirect('sorted_records')
+        
     records = Record.objects.all()
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="Patient_records.csv"'
