@@ -89,8 +89,6 @@ category_mappings = bundle["category_mappings"]
 feature_names = bundle["feature_names"]
 
 def customer_claim_view(request):
-    prediction = None
-
     if request.method == 'POST':
         form = CustomerClaimForm(request.POST)
         if form.is_valid():
@@ -168,8 +166,5 @@ def customer_claim_view(request):
             print("Form invalid:", form.errors)
     else:
         form = CustomerClaimForm()
-
-    return render(request, 'customer_claim_form.html', {
-        'form': form,
-        'prediction': prediction
-    })
+    
+    return render(request, 'customer_claim_form.html', {'form': form})

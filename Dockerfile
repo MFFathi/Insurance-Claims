@@ -11,6 +11,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the full project (including MLModel folder)
 COPY . .
 
+# Install the ML module
+RUN pip install -e .
+
 # Train the model before launching the app
 RUN python MLModel/model_trainer.py
 
