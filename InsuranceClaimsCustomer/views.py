@@ -76,7 +76,7 @@ category_mappings = {
 }
 
 # Load the trained model bundle (dictionary)
-MODEL_BUNDLE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'MLModel', 'knn_model_0.3.pkl')
+MODEL_BUNDLE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'MLModel', 'knn_model_0.4.pkl')
 with open(MODEL_BUNDLE_PATH, 'rb') as file:
     bundle = pickle.load(file)
 
