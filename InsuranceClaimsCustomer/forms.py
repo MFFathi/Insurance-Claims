@@ -1,6 +1,6 @@
 import pandas as pd
 from django import forms
-from .model import CustomerClaim
+from .models import CustomerClaim
 import os
 
 # Load CSV from correct path

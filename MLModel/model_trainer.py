@@ -7,7 +7,7 @@ import pickle
 import os
 
 # Load the dataset
-df = pd.read_csv("MLModel/Patient_records.csv")
+df = pd.read_csv("MLModel/Cleaned_Patient_Records.csv")
 
 # Drop rows where SettlementValue is missing
 df = df.dropna(subset=["SettlementValue"])

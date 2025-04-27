@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .model import InsuranceClaim, CustomerClaim
+from .models import InsuranceClaim, CustomerClaim
 
 @admin.register(InsuranceClaim)
 class InsuranceClaimAdmin(admin.ModelAdmin):

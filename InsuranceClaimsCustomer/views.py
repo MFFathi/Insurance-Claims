@@ -1,10 +1,83 @@
-<<<<<<< HEAD
 from django.shortcuts import render, redirect
-from .form import ClaimEntryForm
-=======
-from django.shortcuts import render
-from .forms import ClaimForm
->>>>>>> 997d5fc6aed43fcfed3d677841e63a55040578c3
+from .forms import CustomerClaimForm
+import pandas as pd
+import numpy as np
+from .models import InsuranceClaim
+import joblib
+import os
+
+# Load the trained model and scaler
+model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'InsuranceClaimsML', 'insurance_model.pkl')
+
+try:
+    ml = joblib.load(model_path)
+    print("Model loaded successfully")
+except Exception as e:
+    print(f"Error loading model files: {e}")
+    ml = None
+
+# Category mappings for categorical fields
+category_mappings = {
+    'AccidentType': {
+        'Rear-end collision': 1,
+        'Side-impact collision': 2,
+        'Head-on collision': 3,
+        'Single vehicle accident': 4,
+        'Other': 5
+    },
+    'Injury_Prognosis': {
+        'Full recovery expected': 1,
+        'Partial recovery expected': 2,
+        'Long-term effects expected': 3,
+        'Permanent disability': 4
+    },
+    'Exceptional_Circumstances': {
+        'Yes': 1,
+        'No': 0
+    },
+    'Minor_Psychological_Injury': {
+        'Yes': 1,
+        'No': 0
+    },
+    'Dominant_injury': {
+        'Head': 1,
+        'Neck': 2,
+        'Back': 3,
+        'Limbs': 4,
+        'Internal': 5
+    },
+    'Whiplash': {
+        'Yes': 1,
+        'No': 0
+    },
+    'Vehicle_Type': {
+        'Car': 1,
+        'SUV': 2,
+        'Truck': 3,
+        'Motorcycle': 4,
+        'Other': 5
+    },
+    'Weather_Conditions': {
+        'Clear': 1,
+        'Rain': 2,
+        'Snow': 3,
+        'Fog': 4,
+        'Other': 5
+    },
+    'Police_Report_Filed': {
+        'Yes': 1,
+        'No': 0
+    },
+    'Witness_Present': {
+        'Yes': 1,
+        'No': 0
+    },
+    'Gender': {
+        'Male': 1,
+        'Female': 2,
+        'Other': 3
+    }
+}
 
 def claim_entry(request):
     prediction = None
