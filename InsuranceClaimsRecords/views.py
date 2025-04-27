@@ -10,7 +10,7 @@ from .models import Record
 def has_record_permission(user):
     return user.is_authenticated and (
         user.is_superuser or 
-        user.role.name in ['Admin', 'Finance']
+        user.check_permission('records.view.all')
     )
 
 @login_required
@@ -37,7 +37,7 @@ def sorted_records(request):
 
 @login_required
 def export_records_csv(request):
-    if not (request.user.is_superuser or request.user.role.name in ['Admin', 'Finance']):
+    if not has_record_permission(request.user):
         messages.error(request, "You don't have permission to export records.")
         return redirect('sorted_records')
         

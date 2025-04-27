@@ -7,7 +7,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.utils.decorators import method_decorator
-from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django import forms
 
 from .models import User, Role, Permission
@@ -30,7 +30,7 @@ def login_view(request):
                 login(request, user)
                 return redirect('accounts:profile')
             else:
-                messages.error(request, 'Username or password incorrect')
+                messages.error(request, 'Invalid username or password')
     else:
         form = LoginForm()
     return render(request, 'accounts/login.html', {'form': form})
@@ -124,24 +124,20 @@ class UserCreateView(UserPassesTestMixin, CreateView):
         return response
 
 @method_decorator(login_required, name='dispatch')
-class UserUpdateView(UserPassesTestMixin, UpdateView):
+class UserUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = User
     form_class = CustomUserChangeForm
+    template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
-    
-    def test_func(self):
-        if is_admin(self.request.user):
-            return True
-        if str(self.kwargs.get('pk')) == str(self.request.user.pk):
-            return self.request.user.check_permission('account.update.self')
-        return False
 
-    def get_template_names(self):
-        # If admin is editing another user, use admin template
-        if is_admin(self.request.user) and str(self.kwargs.get('pk')) != str(self.request.user.pk):
-            return ['accounts/admin/user_form.html']
-        # Otherwise use the regular user form template
-        return ['accounts/user_form.html']
+    def test_func(self):
+        user = self.get_object()
+        return is_admin(self.request.user) or self.request.user == user
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['current_user'] = self.request.user
+        return kwargs
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -151,22 +147,16 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
                 form.fields['role'].disabled = True
         return form
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_admin'] = is_admin(self.request.user)
+        context['editing_self'] = self.request.user == self.get_object()
+        return context
+
     def form_valid(self, form):
-        # Store the current user and target user
-        current_user = self.request.user
-        target_user = self.get_object()
-        
-        # If we're updating our own profile
-        if str(target_user.pk) == str(current_user.pk):
-            response = super().form_valid(form)
-            # Update session auth hash to maintain the session
-            update_session_auth_hash(self.request, self.object)
-            return redirect('accounts:profile')
-        else:
-            # If we're updating another user, don't affect the current session
-            response = super().form_valid(form)
-            messages.success(self.request, f'User {target_user.username} updated successfully!')
-            return redirect('accounts:user_list')
+        response = super().form_valid(form)
+        messages.success(self.request, 'User updated successfully!')
+        return response
 
 @method_decorator(login_required, name='dispatch')
 class UserDeleteView(UserPassesTestMixin, DeleteView):

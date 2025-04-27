@@ -97,6 +97,48 @@ class CustomUserChangeForm(UserChangeForm):
         model = User
         fields = ('username', 'full_name', 'role')
         
+    def __init__(self, *args, **kwargs):
+        self.current_user = kwargs.pop('current_user', None)
+        super().__init__(*args, **kwargs)
+        
+        # If the current user is not a superuser, filter available roles
+        if self.current_user and not self.current_user.is_superuser:
+            # Get the admin role
+            admin_role = Role.objects.filter(name='Admin').first()
+            
+            if self.instance.role == admin_role:
+                # If editing an admin user, disable role field for non-superusers
+                self.fields['role'].disabled = True
+                self.fields['role'].help_text = "Only superusers can change admin roles."
+            else:
+                # For non-admin users, exclude admin role if current user is not a superuser
+                self.fields['role'].queryset = Role.objects.exclude(name='Admin')
+        
+    def clean_role(self):
+        role = self.cleaned_data.get('role')
+        old_role = self.instance.role
+        
+        # If no role is selected, return the current role
+        if not role:
+            return old_role
+            
+        # Get the admin role
+        admin_role = Role.objects.filter(name='Admin').first()
+        
+        # If the user being edited is an admin
+        if old_role == admin_role:
+            # Only superusers can change admin roles
+            if not self.current_user.is_superuser:
+                return old_role
+                
+        # If trying to set role to admin
+        if role == admin_role:
+            # Allow superusers and admins to promote to admin
+            if not (self.current_user.is_superuser or self.current_user.role == admin_role):
+                raise ValidationError("Only superusers and admins can promote users to admin role.")
+                
+        return role
+        
     def clean_full_name(self):
         full_name = self.cleaned_data.get('full_name')
         validate_full_name(full_name)

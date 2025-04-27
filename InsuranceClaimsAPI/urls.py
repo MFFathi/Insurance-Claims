@@ -16,6 +16,7 @@ urlpatterns = [
     path('accounts/', include('InsuranceClaimsUser.urls')),   # Custom user app
     path('records/', include('InsuranceClaimsRecords.urls')), # Records app
     path('customer/', include('InsuranceClaimsCustomer.urls')), # Customers form app
+    path('ml/', include('InsuranceClaimsML.urls')),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

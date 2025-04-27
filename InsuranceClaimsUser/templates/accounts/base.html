@@ -37,28 +37,33 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{% if user.is_authenticated %}{% if user.role.name == 'Admin' or user.role.name == 'Finance' %}{% url 'sorted_records' %}{% else %}{% url 'accounts:profile' %}{% endif %}{% else %}{% url 'accounts:login' %}{% endif %}">Insurance Claims Portal</a>
+            <a class="navbar-brand" href="{% if request.user.is_authenticated %}{% if request.user.role.name == 'Admin' or request.user.role.name == 'Finance' or request.user.role.name == 'AI Engineer' %}{% url 'sorted_records' %}{% else %}{% url 'accounts:profile' %}{% endif %}{% else %}{% url 'accounts:login' %}{% endif %}">Insurance Claims Portal</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    {% if user.is_authenticated and user.role.name in 'Admin,Finance' %}
+                    {% if request.user.is_authenticated and request.user.role.name in 'Admin,Finance,AI Engineer' %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'sorted_records' %}">Records</a>
                         </li>
                     {% endif %}
-                    {% if user.is_authenticated and user.role.name == 'Admin' %}
+                    {% if request.user.is_authenticated and request.user.role.name == 'Admin' %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:user_list' %}">Users</a>
                         </li>
                     {% endif %}
+                    {% if request.user.is_authenticated and request.user.role.name == 'AI Engineer' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'ml:model_list' %}">ML Models</a>
+                        </li>
+                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
+                    {% if request.user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                {{ user.full_name }}
+                                {{ request.user.full_name }} ({{ request.user.role.name }})
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>

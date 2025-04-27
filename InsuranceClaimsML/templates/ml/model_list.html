@@ -1,0 +1,87 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}ML Models - Insurance Claims Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% with upload_perm=user.check_permission|add:"ml.upload" %}
+    {% if upload_perm %}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'ml:model_upload' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-upload"></i> Upload New Model
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h2 class="mb-0">ML Models</h2>
+        </div>
+        <div class="card-body">
+            {% if models %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Version</th>
+                                <th>Status</th>
+                                <th>Accuracy</th>
+                                <th>Uploaded By</th>
+                                <th>Uploaded At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for model in models %}
+                            <tr>
+                                <td>{{ model.name }}</td>
+                                <td>{{ model.version }}</td>
+                                <td>
+                                    {% if model.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ model.accuracy|default:"N/A" }}</td>
+                                <td>{{ model.uploaded_by.full_name }}</td>
+                                <td>{{ model.uploaded_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% with update_perm=user.check_permission|add:"ml.update" %}
+                                    {% if update_perm %}
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'ml:model_update' model.pk %}" class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'ml:model_delete' model.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No ML models have been uploaded yet.
+                    {% with upload_perm=user.check_permission|add:"ml.upload" %}
+                    {% if upload_perm %}
+                    <a href="{% url 'ml:model_upload' %}" class="alert-link">Upload your first model</a>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

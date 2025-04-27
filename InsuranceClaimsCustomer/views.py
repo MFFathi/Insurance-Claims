@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 from django.shortcuts import render, redirect
-from .form import ClaimEntryForm
-=======
 from django.shortcuts import render
 from .forms import ClaimForm
->>>>>>> 997d5fc6aed43fcfed3d677841e63a55040578c3
 
 def claim_entry(request):
     prediction = None

@@ -2,11 +2,14 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.messages import get_messages
+from django.core.exceptions import ValidationError
 from .models import Role, Permission, User
 from .forms import (
     CustomUserCreationForm, CustomUserChangeForm, LoginForm,
     AdminUserCreationForm, ProfileUpdateForm, FinanceUserCreationForm
 )
+from .utils import validate_username, validate_password, validate_full_name
 
 class TestCustomUserManager(TestCase):
     def test_create_user(self):
@@ -504,3 +507,210 @@ class TestPermissionMixin(TestCase):
             
         view = TestView()
         self.assertTrue(view.test_func())
+
+class TestPermissions(TestCase):
+    def setUp(self):
+        # Create roles
+        self.admin_role = Role.objects.create(name='Admin')
+        self.ai_engineer_role = Role.objects.create(name='AI Engineer')
+        self.user_role = Role.objects.create(name='User')
+
+        # Create permissions
+        Permission.objects.create(
+            role=self.admin_role,
+            name='records.view.all',
+            is_allowed=True
+        )
+        Permission.objects.create(
+            role=self.ai_engineer_role,
+            name='ml.view',
+            is_allowed=True
+        )
+        Permission.objects.create(
+            role=self.user_role,
+            name='account.view.self',
+            is_allowed=True
+        )
+
+        # Create users
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            password='adminpass123',
+            full_name='Admin User'
+        )
+        self.admin_user.role = self.admin_role
+        self.admin_user.save()
+
+        self.ai_engineer = User.objects.create_user(
+            username='ai_engineer',
+            password='aipass123',
+            full_name='AI Engineer'
+        )
+        self.ai_engineer.role = self.ai_engineer_role
+        self.ai_engineer.save()
+
+        self.regular_user = User.objects.create_user(
+            username='user',
+            password='userpass123',
+            full_name='Regular User'
+        )
+        self.regular_user.role = self.user_role
+        self.regular_user.save()
+
+    def test_role_inheritance(self):
+        """Test that roles can inherit permissions from parent roles"""
+        # Create a parent role with permissions
+        parent_role = Role.objects.create(name='Parent')
+        Permission.objects.create(
+            role=parent_role,
+            name='parent.permission',
+            is_allowed=True
+        )
+
+        # Make AI Engineer role extend parent role
+        self.ai_engineer_role.extends.add(parent_role)
+
+        # AI Engineer should have parent's permission
+        self.assertTrue(self.ai_engineer.check_permission('parent.permission'))
+
+    def test_permission_override(self):
+        """Test that child role permissions override parent permissions"""
+        parent_role = Role.objects.create(name='Parent')
+        Permission.objects.create(
+            role=parent_role,
+            name='shared.permission',
+            is_allowed=True
+        )
+        Permission.objects.create(
+            role=self.ai_engineer_role,
+            name='shared.permission',
+            is_allowed=False
+        )
+
+        self.ai_engineer_role.extends.add(parent_role)
+        self.assertFalse(self.ai_engineer.check_permission('shared.permission'))
+
+    def test_wildcard_permission(self):
+        """Test wildcard permissions"""
+        Permission.objects.create(
+            role=self.admin_role,
+            name='.*',
+            is_allowed=True
+        )
+        self.assertTrue(self.admin_user.check_permission('any.random.permission'))
+
+    def test_nested_permission_check(self):
+        """Test nested permission checking"""
+        Permission.objects.create(
+            role=self.ai_engineer_role,
+            name='ml.models.view',
+            is_allowed=True
+        )
+        self.assertTrue(self.ai_engineer.check_permission('ml.models.view'))
+        self.assertFalse(self.ai_engineer.check_permission('ml.models.edit'))
+
+    def test_no_role_no_permissions(self):
+        """Test that users without roles have no permissions"""
+        user_without_role = User.objects.create_user(
+            username='norole',
+            password='pass123',
+            full_name='No Role'
+        )
+        self.assertFalse(user_without_role.check_permission('any.permission'))
+
+class TestUserValidation(TestCase):
+    def test_username_validation(self):
+        """Test username validation rules"""
+        # Valid usernames
+        self.assertIsNone(validate_username('validuser'))
+        self.assertIsNone(validate_username('user123'))
+        self.assertIsNone(validate_username('valid_user'))
+
+        # Invalid usernames
+        with self.assertRaises(ValidationError):
+            validate_username('us')  # Too short
+        with self.assertRaises(ValidationError):
+            validate_username('user@invalid')  # Invalid characters
+        with self.assertRaises(ValidationError):
+            validate_username('a' * 31)  # Too long
+
+    def test_password_validation(self):
+        """Test password validation rules"""
+        # Valid password
+        self.assertIsNone(validate_password('ValidPass123!'))
+
+        # Invalid passwords
+        with self.assertRaises(ValidationError):
+            validate_password('short')  # Too short
+        with self.assertRaises(ValidationError):
+            validate_password('nodigits!')  # No digits
+        with self.assertRaises(ValidationError):
+            validate_password('nocaps123!')  # No uppercase
+        with self.assertRaises(ValidationError):
+            validate_password('NOLOWER123!')  # No lowercase
+
+    def test_full_name_validation(self):
+        """Test full name validation rules"""
+        # Valid names
+        self.assertIsNone(validate_full_name('John Doe'))
+        self.assertIsNone(validate_full_name('Mary Jane-Smith'))
+
+        # Invalid names
+        with self.assertRaises(ValidationError):
+            validate_full_name('A')  # Too short
+        with self.assertRaises(ValidationError):
+            validate_full_name('Invalid123')  # Contains numbers
+        with self.assertRaises(ValidationError):
+            validate_full_name('a' * 51)  # Too long
+
+class TestUserAuthentication(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user_role = Role.objects.create(name='User')
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='TestPass123!',
+            full_name='Test User'
+        )
+        self.user.role = self.user_role
+        self.user.save()
+
+    def test_login_required_views(self):
+        """Test that views require login"""
+        # Try accessing profile without login
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response, 
+            f"{reverse('accounts:login')}?next={reverse('accounts:profile')}"
+        )
+
+    def test_login_success(self):
+        """Test successful login"""
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'testuser',
+            'password': 'TestPass123!'
+        })
+        self.assertRedirects(response, reverse('accounts:profile'))
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+
+    def test_login_failure(self):
+        """Test failed login attempts"""
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'testuser',
+            'password': 'WrongPass123!'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('Invalid username or password' in str(m) for m in messages))
+
+    def test_logout(self):
+        """Test logout functionality"""
+        # First login
+        self.client.login(username='testuser', password='TestPass123!')
+        
+        # Then logout
+        response = self.client.get(reverse('accounts:logout'))
+        self.assertRedirects(response, reverse('accounts:login'))
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
