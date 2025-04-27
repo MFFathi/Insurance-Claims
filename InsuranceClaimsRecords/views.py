@@ -1,11 +1,12 @@
 from django.core.paginator import Paginator
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
 from django.contrib import messages
 import csv
 from .models import Record
+from .forms import RecordForm
 
 def has_record_permission(user):
     return user.is_authenticated and (
@@ -53,3 +54,64 @@ def export_records_csv(request):
         writer.writerow([getattr(record, field) for field in fields])
 
     return response
+
+@login_required
+def create_record(request):
+    if not has_record_permission(request.user):
+        messages.error(request, "You don't have permission to create records.")
+        return redirect('accounts:login')
+        
+    if request.method == 'POST':
+        form = RecordForm(request.POST)
+        if form.is_valid():
+            record = form.save()
+            messages.success(request, f'Record #{record.record_id} created successfully.')
+            return redirect('sorted_records')
+    else:
+        form = RecordForm()
+    
+    return render(request, 'record_form.html', {
+        'form': form,
+        'title': 'Create New Record',
+        'action': 'Create'
+    })
+
+@login_required
+def edit_record(request, record_id):
+    if not has_record_permission(request.user):
+        messages.error(request, "You don't have permission to edit records.")
+        return redirect('accounts:login')
+        
+    record = get_object_or_404(Record, record_id=record_id)
+    
+    if request.method == 'POST':
+        form = RecordForm(request.POST, instance=record)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Record #{record_id} updated successfully.')
+            return redirect('sorted_records')
+    else:
+        form = RecordForm(instance=record)
+    
+    return render(request, 'record_form.html', {
+        'form': form,
+        'title': f'Edit Record #{record_id}',
+        'action': 'Update'
+    })
+
+@login_required
+def delete_record(request, record_id):
+    if not has_record_permission(request.user):
+        messages.error(request, "You don't have permission to delete records.")
+        return redirect('accounts:login')
+        
+    record = get_object_or_404(Record, record_id=record_id)
+    
+    if request.method == 'POST':
+        record.delete()
+        messages.success(request, f'Record #{record_id} deleted successfully.')
+        return redirect('sorted_records')
+    
+    return render(request, 'record_confirm_delete.html', {
+        'record': record
+    })

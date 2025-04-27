@@ -1,95 +1,288 @@
-{% extends 'accounts/base.html' %}
+{% extends 'base.html' %}
 {% load custom_tags %}
 
 {% block title %}Insurance Claim Records{% endblock %}
 
+{% block extra_style %}
+    .records-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .records-actions {
+        display: flex;
+        gap: 15px;
+    }
+
+    .search-sort-container {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .sort-box {
+        min-width: 200px;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .table-header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .table-actions .btn {
+        padding: 8px 15px;
+        font-size: 13px;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 30px;
+        padding: 15px 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .pagination-info {
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .pagination-links {
+        display: flex;
+        gap: 10px;
+    }
+
+    .no-records {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-light);
+    }
+
+    .no-records i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        color: var(--light-gray);
+    }
+
+    .record-status {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .record-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .record-actions .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 768px) {
+        .records-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .search-sort-container {
+            flex-direction: column;
+        }
+
+        .search-box, .sort-box {
+            width: 100%;
+        }
+    }
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h2 class="mb-0">Insurance Claim Records</h2>
-                </div>
-                <div class="card-body">
-                    {% if user.is_authenticated %}
-                        <form method="get" action="{% url 'sorted_records' %}" class="mb-4">
-                            <div class="row align-items-end">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="sort" class="form-label">Sort by:</label>
-                                        <select name="sort" id="sort" class="form-select">
-                                            {% for field in fields %}
-                                                <option value="{{ field }}" {% if field == sort_by %}selected{% endif %}>{{ field|capfirst }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <button type="submit" class="btn btn-primary">Apply</button>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    {% if user.role.name == 'Admin' or user.role.name == 'Finance' %}
-                                        <a href="{% url 'export_csv' %}" class="btn btn-success">
-                                            <i class="fas fa-download"></i> Export CSV
-                                        </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </form>
-
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        {% for field in fields %}
-                                            <th>{{ field|capfirst }}</th>
-                                        {% endfor %}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for record in records %}
-                                        <tr>
-                                            {% for field in fields %}
-                                                <td>{{ record|get_field_value:field }}</td>
-                                            {% endfor %}
-                                        </tr>
-                                    {% empty %}
-                                        <tr>
-                                            <td colspan="{{ fields|length }}" class="text-center">No records found.</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <nav aria-label="Page navigation" class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                {% if records.has_previous %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ records.previous_page_number }}&sort={{ sort_by }}">Previous</a>
-                                    </li>
-                                {% endif %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">Page {{ records.number }} of {{ records.paginator.num_pages }}</span>
-                                </li>
-                                {% if records.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ records.next_page_number }}&sort={{ sort_by }}">Next</a>
-                                    </li>
-                                {% endif %}
-                            </ul>
-                        </nav>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <h3 class="mb-3">Please log in to view records</h3>
-                            <p class="text-muted mb-4">You need to be authenticated to access the insurance claim records.</p>
-                            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+<div class="card">
+    <div class="records-header">
+        <h2>Insurance Claim Records</h2>
+        <div class="records-actions">
+            <a href="{% url 'create_record' %}" class="btn">
+                <i class="fas fa-plus"></i> New Record
+            </a>
+            {% if user.role.name == 'Admin' or user.role.name == 'Finance' %}
+                <a href="{% url 'export_csv' %}" class="btn btn-success">
+                    <i class="fas fa-download"></i> Export CSV
+                </a>
+            {% endif %}
         </div>
     </div>
+
+    {% if user.is_authenticated %}
+        <div class="search-sort-container">
+            <div class="search-box">
+                <input type="text" class="form-control" placeholder="Search records..." id="searchInput">
+            </div>
+            <div class="sort-box">
+                <form method="get" action="{% url 'sorted_records' %}" class="sort-form">
+                    <select name="sort" id="sort" class="form-control" onchange="this.form.submit()">
+                        <option value="">Sort by...</option>
+                        {% for field in fields %}
+                            <option value="{{ field }}" {% if field == sort_by %}selected{% endif %}>{{ field|capfirst }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h3 class="table-title">Records List</h3>
+                <div class="table-actions">
+                    <span class="pagination-info">Showing {{ records.start_index }}-{{ records.end_index }} of {{ records.paginator.count }}</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for field in fields %}
+                                <th>{{ field|capfirst }}</th>
+                            {% endfor %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                {% for field in fields %}
+                                    <td>
+                                        {% if field == 'status' %}
+                                            <span class="record-status status-{{ record.status|lower }}">
+                                                {{ record.status }}
+                                            </span>
+                                        {% else %}
+                                            {{ record|get_field_value:field }}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                                <td>
+                                    <div class="record-actions">
+                                        <a href="{% url 'edit_record' record.record_id %}" class="btn btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'delete_record' record.record_id %}" class="btn btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="{{ fields|length|add:1 }}" class="no-records">
+                                    <i class="fas fa-folder-open"></i>
+                                    <h3>No records found</h3>
+                                    <p>Start by creating a new record</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Page {{ records.number }} of {{ records.paginator.num_pages }}
+            </div>
+            <div class="pagination-links">
+                {% if records.has_previous %}
+                    <a href="?page={{ records.previous_page_number }}&sort={{ sort_by }}" class="btn">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                {% endif %}
+                {% if records.has_next %}
+                    <a href="?page={{ records.next_page_number }}&sort={{ sort_by }}" class="btn">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center">
+            <h3>Please log in to view records</h3>
+            <p>You need to be authenticated to access the insurance claim records.</p>
+            <a href="{% url 'accounts:login' %}" class="btn">Login</a>
+        </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const tableRows = document.querySelectorAll('tbody tr');
+
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    });
+</script>
 {% endblock %}
