@@ -1,5 +1,5 @@
 from django import forms
-from .models import ClaimEntry
+from .model import ClaimEntry
 
 class ClaimEntryForm(forms.ModelForm):
     class Meta:

@@ -1,10 +1,10 @@
 import pandas as pd
 from django import forms
-from .models import CustomerClaim
+from .model import CustomerClaim
 import os
 
 # Load CSV from correct path
-CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'MLModel', 'Patient_records.csv')
+CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'InsuranceClaimsML', 'Patient_records.csv')
 df = pd.read_csv(CSV_PATH)
 
 def get_unique_choices(column_name, fallback="N/A"):

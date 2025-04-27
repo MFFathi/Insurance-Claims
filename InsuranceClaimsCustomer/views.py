@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from django.shortcuts import render
 from .forms import CustomerClaimForm
-from .models import CustomerClaim, InsuranceClaim
+from .model import CustomerClaim, InsuranceClaim
 
 # Category mappings (user text --> numbers)
 category_mappings = {
@@ -76,7 +76,7 @@ category_mappings = {
 }
 
 # Load the trained model bundle (dictionary)
-MODEL_BUNDLE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'MLModel', 'knn_model_0.4.pkl')
+MODEL_BUNDLE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'InsuranceClaimsML', 'knn_model_0.4.pkl')
 with open(MODEL_BUNDLE_PATH, 'rb') as file:
     bundle = pickle.load(file)
 
