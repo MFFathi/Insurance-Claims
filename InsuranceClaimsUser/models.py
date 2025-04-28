@@ -52,9 +52,9 @@ class User(AbstractUser):
     objects = CustomUserManager()
     
     def save(self, *args, **kwargs):
-        # If this is a superuser and they don't have a role, assign them the Admin role
+        # If this is a superuser and they don't have a role, assign them the admin role (lowercase)
         if self.is_superuser and not self.role:
-            admin_role = Role.objects.filter(name='Admin').first()
+            admin_role = Role.objects.filter(name='admin').first()
             if admin_role:
                 self.role = admin_role
         super().save(*args, **kwargs)
