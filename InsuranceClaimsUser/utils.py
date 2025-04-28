@@ -1,5 +1,10 @@
 import re
 from django.core.exceptions import ValidationError
+from functools import wraps
+from django.contrib.auth.decorators import user_passes_test
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.models import Group
+from django.shortcuts import redirect
 
 USERNAME_MIN_LEN = 2
 USERNAME_MAX_LEN = 15
@@ -46,3 +51,50 @@ def validate_full_name(full_name):
 
 def clean_full_name(full_name):
     return ' '.join(full_name.split())
+
+def role_required(*role_names):
+    """
+    Decorator for views that checks whether a user has a particular role.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                raise PermissionDenied
+            
+            if not any(request.user.groups.filter(name=role_name).exists() for role_name in role_names):
+                raise PermissionDenied
+            
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+def has_role(user, role_name):
+    """
+    Helper function to check if a user has a specific role.
+    """
+    return user.groups.filter(name=role_name).exists()
+
+def get_user_roles(user):
+    """
+    Returns a list of role names the user belongs to.
+    """
+    return list(user.groups.values_list('name', flat=True))
+
+def group_required(*group_names):
+    """
+    Decorator for views that checks whether a user has a particular group.
+    Redirects to login if not authenticated, raises PermissionDenied if not authorized.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('login')
+            
+            if not any(request.user.groups.filter(name=group_name).exists() for group_name in group_names):
+                raise PermissionDenied("You don't have permission to access this page.")
+            
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
