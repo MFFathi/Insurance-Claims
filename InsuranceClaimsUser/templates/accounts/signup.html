@@ -1,41 +1,49 @@
-{% extends 'accounts/base.html' %}
+{% extends 'accounts/auth_base.html' %}
 
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h2 class="mb-0">Sign Up</h2>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.help_text %}
-                            <div class="form-text">{{ field.help_text }}</div>
-                            {% endif %}
-                            {% if field.errors %}
-                            <div class="alert alert-danger">
-                                {{ field.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Sign Up</button>
-                        </div>
-                    </form>
-                    <div class="text-center mt-4">
-                        <p>Already have an account? <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Login</a></p>
-                    </div>
-                </div>
+<div class="card">
+    <div class="card-header">
+        <h3 class="text-center">Sign Up</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <div class="alert alert-danger">{{ form.username.errors }}</div>
+                {% endif %}
             </div>
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                <div class="alert alert-danger">{{ form.full_name.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="password1">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                <div class="alert alert-danger">{{ form.password1.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="password2">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <div class="alert alert-danger">{{ form.password2.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+            </div>
+        </form>
+        <div class="text-center mt-4">
+            <p>Already have an account? <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Login</a></p>
         </div>
     </div>
 </div>

@@ -3,11 +3,11 @@
 {% block title %}{% if form.instance.pk %}Edit User{% else %}Create User{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
                     <h2 class="mb-0">
                         {% if form.instance.pk %}
                             {% if request.user.pk == form.instance.pk %}
@@ -25,22 +25,22 @@
                         </a>
                     {% endif %}
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="post">
                         {% csrf_token %}
                         
                         {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
+                        <div class="alert alert-danger mb-4">
                             {% for error in form.non_field_errors %}
                                 {{ error }}
                             {% endfor %}
                         </div>
                         {% endif %}
 
-                        <div class="row">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                                <div class="mb-4">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">Username</label>
                                     {{ form.username }}
                                     {% if form.username.errors %}
                                     <div class="invalid-feedback d-block">
@@ -54,8 +54,8 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name</label>
+                                <div class="mb-4">
+                                    <label for="{{ form.full_name.id_for_label }}" class="form-label fw-bold">Full Name</label>
                                     {{ form.full_name }}
                                     {% if form.full_name.errors %}
                                     <div class="invalid-feedback d-block">
@@ -66,8 +66,8 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                <div class="mb-4">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">Email</label>
                                     {{ form.email }}
                                     {% if form.email.errors %}
                                     <div class="invalid-feedback d-block">
@@ -80,8 +80,8 @@
                             </div>
 
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.role.id_for_label }}" class="form-label">Role</label>
+                                <div class="mb-4">
+                                    <label for="{{ form.role.id_for_label }}" class="form-label fw-bold">Role</label>
                                     {{ form.role }}
                                     {% if form.role.errors %}
                                     <div class="invalid-feedback d-block">
@@ -93,8 +93,8 @@
                                 </div>
 
                                 {% if not form.instance.pk %}
-                                <div class="mb-3">
-                                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                                <div class="mb-4">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label fw-bold">Password</label>
                                     {{ form.password1 }}
                                     {% if form.password1.errors %}
                                     <div class="invalid-feedback d-block">
@@ -108,8 +108,8 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="{{ form.password2.id_for_label }}" class="form-label">Password Confirmation</label>
+                                <div class="mb-4">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label fw-bold">Password Confirmation</label>
                                     {{ form.password2 }}
                                     {% if form.password2.errors %}
                                     <div class="invalid-feedback d-block">
@@ -123,23 +123,9 @@
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                {% if form.instance.pk %}
-                                    {% if request.user.pk == form.instance.pk %}
-                                        Update Your Profile
-                                    {% else %}
-                                        Update User
-                                    {% endif %}
-                                {% else %}
-                                    Create User
-                                {% endif %}
-                            </button>
-                            {% if form.instance.pk and request.user.pk == form.instance.pk %}
-                                <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
-                            {% else %}
-                                <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Cancel</a>
-                            {% endif %}
+                        <div class="d-grid gap-3 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg">{% if form.instance.pk %}Update User{% else %}Create User{% endif %}</button>
+                            <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
                         </div>
                     </form>
                 </div>
