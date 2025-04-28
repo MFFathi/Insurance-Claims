@@ -11,6 +11,9 @@ from .forms import RecordForm
 def has_record_permission(user):
     return user.is_authenticated and (
         user.is_superuser or 
+        (user.role and user.role.name.lower() == 'admin') or
+        (user.role and user.role.name.lower() == 'finance') or
+        (user.role and user.role.name.lower() == 'ai engineer') or
         user.check_permission('records.view.all')
     )
 

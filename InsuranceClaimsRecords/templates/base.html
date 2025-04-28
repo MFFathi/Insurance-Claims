@@ -268,7 +268,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="{% url 'sorted_records' %}" class="navbar-brand">Insurance Claims Portal</a>
+        <a href="{% url 'accounts:profile' %}" class="navbar-brand">Insurance Claims Portal</a>
         <div class="navbar-links">
             {% if user.is_authenticated %}
                 <a href="{% url 'sorted_records' %}">Records</a>

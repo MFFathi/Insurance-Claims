@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'accounts/base.html' %}
 {% load custom_tags %}
 
 {% block title %}Insurance Claim Records{% endblock %}
@@ -160,7 +160,7 @@
             <a href="{% url 'create_record' %}" class="btn">
                 <i class="fas fa-plus"></i> New Record
             </a>
-            {% if user.role.name == 'Admin' or user.role.name == 'Finance' %}
+            {% if user.is_superuser or user.role.name.lower == 'admin' or user.role.name.lower == 'finance' %}
                 <a href="{% url 'export_csv' %}" class="btn btn-success">
                     <i class="fas fa-download"></i> Export CSV
                 </a>
