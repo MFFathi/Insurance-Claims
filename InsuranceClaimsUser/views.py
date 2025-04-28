@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -9,17 +9,22 @@ from django.views.generic.detail import DetailView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django import forms
+from django.contrib.auth.models import Group
 
 from .models import User, Role, Permission
 from .forms import (
     CustomUserCreationForm, CustomUserChangeForm, LoginForm, AdminUserCreationForm,
     ProfileUpdateForm, FinanceUserCreationForm
 )
-
-def is_admin(user):
-    return user.is_superuser or (user.role and user.role.name == 'Admin')
+from .decorators import (
+    admin_required, finance_required, customer_required, ai_engineer_required,
+    group_required
+)
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:profile')
+        
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -35,26 +40,25 @@ def login_view(request):
         form = LoginForm()
     return render(request, 'accounts/login.html', {'form': form})
 
-def signup_view(request):
+def signup(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:profile')
+        
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            # Optionally set a default role for regular users
-            default_role = Role.objects.filter(name='User').first()
-            if default_role:
-                user.role = default_role
+            # Automatically assign the customer role
+            customer_group = Group.objects.get(name='customer')
             user.save()
+            user.groups.add(customer_group)
             login(request, user)
-            messages.success(request, 'Account created successfully!')
             return redirect('accounts:profile')
-        else:
-            messages.error(request, 'Please correct the errors below.')
     else:
         form = CustomUserCreationForm()
     return render(request, 'accounts/signup.html', {'form': form})
 
-@user_passes_test(is_admin)
+@admin_required
 def admin_signup_view(request):
     if request.method == 'POST':
         form = AdminUserCreationForm(request.POST)
@@ -75,16 +79,15 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    return render(request, 'accounts/profile.html')
+    from InsuranceClaimsCustomer.models import CustomerClaim
+    claims = CustomerClaim.objects.filter(user=request.user).order_by('-Claim_Date')
+    return render(request, 'accounts/profile.html', {'claims': claims})
 
-@method_decorator(login_required, name='dispatch')
-class UserListView(UserPassesTestMixin, ListView):
+@method_decorator(admin_required, name='dispatch')
+class UserListView(ListView):
     model = User
     template_name = 'accounts/user_list.html'
     context_object_name = 'users'
-    
-    def test_func(self):
-        return is_admin(self.request.user)
 
 @method_decorator(login_required, name='dispatch')
 class UserDetailView(UserPassesTestMixin, DetailView):
@@ -93,30 +96,16 @@ class UserDetailView(UserPassesTestMixin, DetailView):
     context_object_name = 'user_detail'
     
     def test_func(self):
-        if is_admin(self.request.user):
+        if self.request.user.is_superuser or (self.request.user.role and self.request.user.role.name.lower() == 'admin'):
             return True
-        if self.kwargs.get('pk') == str(self.request.user.pk):
-            return self.request.user.check_permission('account.view.self')
-        return False
+        return self.request.user == self.get_object()
 
-@method_decorator(login_required, name='dispatch')
-class UserCreateView(UserPassesTestMixin, CreateView):
+@method_decorator(admin_required, name='dispatch')
+class UserCreateView(CreateView):
     model = User
-    form_class = CustomUserCreationForm
+    form_class = AdminUserCreationForm
     template_name = 'accounts/user_form.html'
     success_url = reverse_lazy('accounts:user_list')
-    
-    def test_func(self):
-        return is_admin(self.request.user)
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields['role'] = forms.ModelChoiceField(
-            queryset=Role.objects.all(),
-            required=True,
-            widget=forms.Select(attrs={'class': 'form-control'})
-        )
-        return form
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -132,40 +121,25 @@ class UserUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         user = self.get_object()
-        return is_admin(self.request.user) or self.request.user == user
+        if self.request.user.is_superuser or (self.request.user.role and self.request.user.role.name.lower() == 'admin'):
+            return True
+        return self.request.user == user
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['current_user'] = self.request.user
         return kwargs
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        if not is_admin(self.request.user):
-            # Only admin users can change roles
-            if 'role' in form.fields:
-                form.fields['role'].disabled = True
-        return form
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['is_admin'] = is_admin(self.request.user)
-        context['editing_self'] = self.request.user == self.get_object()
-        return context
-
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(self.request, 'User updated successfully!')
         return response
 
-@method_decorator(login_required, name='dispatch')
-class UserDeleteView(UserPassesTestMixin, DeleteView):
+@method_decorator(admin_required, name='dispatch')
+class UserDeleteView(DeleteView):
     model = User
     template_name = 'accounts/user_confirm_delete.html'
     success_url = reverse_lazy('accounts:user_list')
-    
-    def test_func(self):
-        return is_admin(self.request.user)
 
 @method_decorator(login_required, name='dispatch')
 class ProfileUpdateView(UpdateView):
@@ -181,7 +155,6 @@ class ProfileUpdateView(UpdateView):
     
     def form_valid(self, form):
         response = super().form_valid(form)
-        # Update the session so the user remains logged in after a password change.
         update_session_auth_hash(self.request, self.object)
         messages.success(self.request, 'Profile updated successfully!')
         return response
@@ -198,3 +171,8 @@ def profile_delete_view(request):
         else:
             messages.error(request, 'Incorrect password. Please try again.')
     return render(request, 'accounts/profile_delete.html')
+
+def home_view(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:profile')
+    return redirect('accounts:login')
