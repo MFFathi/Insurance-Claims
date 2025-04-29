@@ -3,31 +3,32 @@
 {% block title %}Delete ML Model - Insurance Claims Portal{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h2 class="mb-0">Delete ML Model</h2>
-                </div>
-                <div class="card-body">
-                    <p class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Are you sure you want to delete the ML model "{{ object.name }}" (version {{ object.version }})?
-                        This action cannot be undone.
-                    </p>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Delete Model
-                            </button>
-                            <a href="{% url 'ml:model_list' %}" class="btn btn-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+<div class="card">
+    <div class="records-header">
+        <h2>Delete ML Model</h2>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header">
+            <h3 class="table-title">Confirm Deletion</h3>
+        </div>
+        
+        <div style="padding: 20px;">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                Are you sure you want to delete the ML model "{{ object.name }}" (version {{ object.version }})?
+                This action cannot be undone.
             </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="records-actions" style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Model
+                    </button>
+                    <a href="{% url 'ml:model_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -1,6 +1,10 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class CustomerClaim(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='claims')
     # Accident Details
     AccidentType = models.CharField(max_length=100)
     Injury_Prognosis = models.CharField(max_length=100)
@@ -41,6 +45,9 @@ class CustomerClaim(models.Model):
     # Date Fields
     Accident_Date = models.DateField()
     Claim_Date = models.DateField()
+    
+    # Prediction Field
+    predicted_settlement = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"Claim {self.id} - {self.AccidentType} on {self.Accident_Date}"

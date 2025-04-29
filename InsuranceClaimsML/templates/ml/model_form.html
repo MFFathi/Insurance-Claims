@@ -3,104 +3,109 @@
 {% block title %}{% if form.instance.pk %}Edit{% else %}Upload{% endif %} ML Model - Insurance Claims Portal{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h2 class="mb-0">{% if form.instance.pk %}Edit{% else %}Upload{% endif %} ML Model</h2>
-                    <a href="{% url 'ml:model_list' %}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Models
-                    </a>
+<div class="card">
+    <div class="records-header">
+        <h2>{% if form.instance.pk %}Edit{% else %}Upload{% endif %} ML Model</h2>
+        <div class="records-actions">
+            <a href="{% url 'ml:model_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Models
+            </a>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header">
+            <h3 class="table-title">Model Details</h3>
+        </div>
+        
+        <div style="padding: 20px;">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
                 </div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">Model Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.description.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.version.id_for_label }}">Version</label>
+                    {{ form.version }}
+                    {% if form.version.errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.version.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.model_file.id_for_label }}">Model File</label>
+                    {{ form.model_file }}
+                    {% if form.model_file.errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.model_file.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <small class="form-text text-muted">Supported formats: .pkl, .joblib, .h5, .keras (Max size: 100MB)</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Set as Active Model
+                        </label>
+                    </div>
+                    {% if form.is_active.errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.is_active.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="records-actions" style="margin-top: 20px;">
+                    <button type="submit" class="btn">
+                        {% if form.instance.pk %}
+                            <i class="fas fa-save"></i> Update Model
+                        {% else %}
+                            <i class="fas fa-upload"></i> Upload Model
                         {% endif %}
-
-                        <div class="mb-3">
-                            <label for="{{ form.name.id_for_label }}" class="form-label">Model Name</label>
-                            {{ form.name }}
-                            {% if form.name.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.name.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.description.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.version.id_for_label }}" class="form-label">Version</label>
-                            {{ form.version }}
-                            {% if form.version.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.version.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.model_file.id_for_label }}" class="form-label">Model File</label>
-                            {{ form.model_file }}
-                            {% if form.model_file.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.model_file.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <div class="form-text">Supported formats: .pkl, .joblib, .h5, .keras (Max size: 100MB)</div>
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            {{ form.is_active }}
-                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                Set as Active Model
-                            </label>
-                            {% if form.is_active.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.is_active.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                {% if form.instance.pk %}
-                                    <i class="fas fa-save"></i> Update Model
-                                {% else %}
-                                    <i class="fas fa-upload"></i> Upload Model
-                                {% endif %}
-                            </button>
-                            <a href="{% url 'ml:model_list' %}" class="btn btn-secondary">Cancel</a>
-                        </div>
-                    </form>
+                    </button>
+                    <a href="{% url 'ml:model_list' %}" class="btn btn-secondary">Cancel</a>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>

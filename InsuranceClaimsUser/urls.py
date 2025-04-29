@@ -14,20 +14,21 @@ from .forms import CustomUserCreationForm, CustomUserChangeForm, LoginForm
 
 from django.urls import path
 from . import views
+from .decorators import admin_required, finance_required, customer_required, ai_engineer_required
 
 app_name = 'accounts'
 
 urlpatterns = [
     path('login/', views.login_view, name='login'),
-    path('signup/', views.signup_view, name='signup'),
-    path('admin/signup/', views.admin_signup_view, name='admin_signup'),
     path('logout/', views.logout_view, name='logout'),
-    path('profile/', views.profile_view, name='profile'),
-    path('profile/edit/', views.ProfileUpdateView.as_view(), name='profile_edit'),
-    path('profile/delete/', views.profile_delete_view, name='profile_delete'),
-    path('users/', views.UserListView.as_view(), name='user_list'),
-    path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
-    path('users/create/', views.UserCreateView.as_view(), name='user_create'),
-    path('users/<int:pk>/update/', views.UserUpdateView.as_view(), name='user_update'),
-    path('users/<int:pk>/delete/', views.UserDeleteView.as_view(), name='user_delete'),
+    path('signup/', views.signup, name='signup'),
+    path('admin/signup/', admin_required(views.admin_signup_view), name='admin_signup'),
+    path('profile/', login_required(views.profile_view), name='profile'),
+    path('profile/edit/', login_required(views.ProfileUpdateView.as_view()), name='profile_edit'),
+    path('profile/delete/', login_required(views.profile_delete_view), name='profile_delete'),
+    path('users/', admin_required(views.UserListView.as_view()), name='user_list'),
+    path('users/<int:pk>/', login_required(views.UserDetailView.as_view()), name='user_detail'),
+    path('users/create/', admin_required(views.UserCreateView.as_view()), name='user_create'),
+    path('users/<int:pk>/update/', login_required(views.UserUpdateView.as_view()), name='user_update'),
+    path('users/<int:pk>/delete/', admin_required(views.UserDeleteView.as_view()), name='user_delete'),
 ]
