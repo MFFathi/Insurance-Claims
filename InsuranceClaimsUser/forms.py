@@ -6,15 +6,10 @@ from .utils import validate_username, validate_password, validate_full_name, cle
 
 class CustomUserCreationForm(UserCreationForm):
     full_name = forms.CharField(max_length=50)
-    role = forms.ModelChoiceField(
-        queryset=Role.objects.all(),
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
     
     class Meta:
         model = User
-        fields = ('username', 'full_name', 'role')
+        fields = ('username', 'full_name')
         
     def clean_username(self):
         username = self.cleaned_data.get('username')
@@ -33,15 +28,16 @@ class CustomUserCreationForm(UserCreationForm):
 
 class AdminUserCreationForm(UserCreationForm):
     full_name = forms.CharField(max_length=50)
+    email = forms.EmailField(required=True)
     role = forms.ModelChoiceField(
-        queryset=Role.objects.filter(name__in=['Admin', 'Finance']),
+        queryset=Role.objects.all(),
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     class Meta:
         model = User
-        fields = ('username', 'full_name', 'role')
+        fields = ('username', 'email', 'full_name', 'role')
         
     def clean_username(self):
         username = self.cleaned_data.get('username')
@@ -61,7 +57,7 @@ class AdminUserCreationForm(UserCreationForm):
 class FinanceUserCreationForm(UserCreationForm):
     full_name = forms.CharField(max_length=50)
     role = forms.ModelChoiceField(
-        queryset=Role.objects.filter(name='Finance'),
+        queryset=Role.objects.filter(name='finance'),
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -104,7 +100,7 @@ class CustomUserChangeForm(UserChangeForm):
         # If the current user is not a superuser, filter available roles
         if self.current_user and not self.current_user.is_superuser:
             # Get the admin role
-            admin_role = Role.objects.filter(name='Admin').first()
+            admin_role = Role.objects.filter(name='admin').first()
             
             if self.instance.role == admin_role:
                 # If editing an admin user, disable role field for non-superusers
@@ -112,7 +108,7 @@ class CustomUserChangeForm(UserChangeForm):
                 self.fields['role'].help_text = "Only superusers can change admin roles."
             else:
                 # For non-admin users, exclude admin role if current user is not a superuser
-                self.fields['role'].queryset = Role.objects.exclude(name='Admin')
+                self.fields['role'].queryset = Role.objects.exclude(name='admin')
         
     def clean_role(self):
         role = self.cleaned_data.get('role')
@@ -123,7 +119,7 @@ class CustomUserChangeForm(UserChangeForm):
             return old_role
             
         # Get the admin role
-        admin_role = Role.objects.filter(name='Admin').first()
+        admin_role = Role.objects.filter(name='admin').first()
         
         # If the user being edited is an admin
         if old_role == admin_role:

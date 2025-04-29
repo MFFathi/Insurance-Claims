@@ -3,29 +3,29 @@
 {% block title %}ML Models - Insurance Claims Portal{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    {% with upload_perm=user.check_permission|add:"ml.upload" %}
-    {% if upload_perm %}
-    <div class="row mb-4">
-        <div class="col">
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <a href="{% url 'ml:model_upload' %}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-upload"></i> Upload New Model
-                </a>
-            </div>
+<div class="card">
+    <div class="records-header">
+        <h2>ML Models</h2>
+        {% with upload_perm=user.check_permission|add:"ml.upload" %}
+        {% if upload_perm %}
+        <div class="records-actions">
+            <a href="{% url 'ml:model_upload' %}" class="btn">
+                <i class="fas fa-upload"></i> Upload New Model
+            </a>
         </div>
+        {% endif %}
+        {% endwith %}
     </div>
-    {% endif %}
-    {% endwith %}
-    
-    <div class="card">
-        <div class="card-header bg-dark text-white">
-            <h2 class="mb-0">ML Models</h2>
+
+    <div class="table-container">
+        <div class="table-header">
+            <h3 class="table-title">Model List</h3>
         </div>
-        <div class="card-body">
+        
+        <div style="padding: 20px;">
             {% if models %}
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -44,9 +44,9 @@
                                 <td>{{ model.version }}</td>
                                 <td>
                                     {% if model.is_active %}
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="record-status status-approved">Active</span>
                                     {% else %}
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="record-status status-pending">Inactive</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ model.accuracy|default:"N/A" }}</td>
@@ -55,11 +55,11 @@
                                 <td>
                                     {% with update_perm=user.check_permission|add:"ml.update" %}
                                     {% if update_perm %}
-                                    <div class="btn-group" role="group">
-                                        <a href="{% url 'ml:model_update' model.pk %}" class="btn btn-sm btn-primary" title="Edit">
+                                    <div class="record-actions">
+                                        <a href="{% url 'ml:model_update' model.pk %}" class="btn btn-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="{% url 'ml:model_delete' model.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                                        <a href="{% url 'ml:model_delete' model.pk %}" class="btn btn-danger" title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>
@@ -72,11 +72,12 @@
                     </table>
                 </div>
             {% else %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> No ML models have been uploaded yet.
+                <div class="no-records">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>No ML models have been uploaded yet</h3>
                     {% with upload_perm=user.check_permission|add:"ml.upload" %}
                     {% if upload_perm %}
-                    <a href="{% url 'ml:model_upload' %}" class="alert-link">Upload your first model</a>
+                    <p>Start by <a href="{% url 'ml:model_upload' %}">uploading your first model</a></p>
                     {% endif %}
                     {% endwith %}
                 </div>
