@@ -5,7 +5,7 @@ class Command(BaseCommand):
     help = 'Creates default roles in the database'
 
     def handle(self, *args, **kwargs):
-        roles = ['customer', 'admin', 'agent']
+        roles = ['customer', 'admin', 'ai engineer', 'finance']
         
         for role_name in roles:
             Role.objects.get_or_create(name=role_name)
