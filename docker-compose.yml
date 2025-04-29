@@ -35,7 +35,10 @@ services:
       - .env
     command:
       sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput && gunicorn InsuranceClaimsAPI.wsgi:application --bind 0.0.0.0:8000"
+             python manage.py setup_initial_roles &&
+             python manage.py sync_roles_and_groups &&
+             python manage.py collectstatic --noinput && 
+             gunicorn InsuranceClaimsAPI.wsgi:application --bind 0.0.0.0:8000"
 
 volumes:
   postgres_data:
