@@ -9,6 +9,7 @@
 </head>
 <body class="container mt-5 mb-5">
     <h1 class="mb-4">Submit Insurance Claim</h1>
+    
     <form method="POST">
         {% csrf_token %}
 
@@ -56,21 +57,23 @@
 
         <fieldset class="border p-4 mb-4">
             <legend class="w-auto px-2">Verification & Additional</legend>
-            <div class="form-check mb-2">{{ form.Police_Report_Filed }} {{ form.Police_Report_Filed.label_tag }}</div>
-            <div class="form-check mb-2">{{ form.Witness_Present }} {{ form.Witness_Present.label_tag }}</div>
-            <div class="form-check mb-2">{{ form.Exceptional_Circumstances }} {{ form.Exceptional_Circumstances.label_tag }}</div>
-            <div class="form-check mb-2">{{ form.Minor_Psychological_Injury }} {{ form.Minor_Psychological_Injury.label_tag }}</div>
+            <div class="mb-3">{{ form.Police_Report_Filed.label_tag }} {{ form.Police_Report_Filed }}</div>
+            <div class="mb-3">{{ form.Witness_Present.label_tag }} {{ form.Witness_Present }}</div>
+            <div class="mb-3">{{ form.Exceptional_Circumstances.label_tag }} {{ form.Exceptional_Circumstances }}</div>
+            <div class="mb-3">{{ form.Minor_Psychological_Injury.label_tag }} {{ form.Minor_Psychological_Injury }}</div>
             <div class="mb-3">{{ form.Claim_Date.label_tag }} {{ form.Claim_Date }}</div>
-            <div class="mb-3">{{ form.SettlementValue.label_tag }} {{ form.SettlementValue }}</div>
         </fieldset>
 
-        <button type="submit" class="btn btn-primary">Submit</button>
-
-        {% if prediction is not None %}
-            <div class="alert alert-success mt-4">
-                <h4>Predicted Settlement Value: {{ prediction|floatformat:2 }}</h4>
-            </div>
-        {% endif %}
+        <button type="submit" class="btn btn-primary">Submit Claim</button>
     </form>
+
+    <!-- Display Prediction Result -->
+    {% if prediction is not None %}
+    <div class="alert alert-success mt-5" role="alert">
+        <h4 class="alert-heading">🧾 Predicted Settlement Value</h4>
+        <p class="mb-0">$ {{ prediction|floatformat:2 }}</p>
+    </div>
+    {% endif %}
+
 </body>
 </html>

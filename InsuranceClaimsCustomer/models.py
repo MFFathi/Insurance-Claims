@@ -52,4 +52,4 @@ class InsuranceClaim(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Claim {self.id} - {self.accident_type} - ${self.settlement_value}" 
+        return f"Claim {self.id} - {self.accident_type} - ${self.settlement_value}"
