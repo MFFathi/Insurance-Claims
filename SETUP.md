@@ -162,24 +162,6 @@ python manage.py collectstatic
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### 4. Nginx Configuration
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location /static/ {
-        alias /path/to/staticfiles/;
-    }
-
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
 ## Troubleshooting
 
 ### Common Issues
