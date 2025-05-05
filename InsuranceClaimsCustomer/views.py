@@ -32,6 +32,7 @@ def claim_entry(request):
         form = CustomerClaimForm(request.POST)
         if form.is_valid():
             claim = form.save(commit=False)
+            claim.user = request.user
 
             try:
                 # Prepare input dictionary
