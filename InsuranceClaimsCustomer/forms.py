@@ -19,7 +19,7 @@ def get_unique_choices(column_name, fallback="N/A"):
 class CustomerClaimForm(forms.ModelForm):
     class Meta:
         model = CustomerClaim
-        fields = '__all__'
+        exclude = ['user']  # ✅ Exclude user so it's not required in the form
 
     def __init__(self, *args, **kwargs):
         super(CustomerClaimForm, self).__init__(*args, **kwargs)
