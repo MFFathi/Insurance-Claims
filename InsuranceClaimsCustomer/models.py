@@ -53,6 +53,7 @@ class CustomerClaim(models.Model):
         return f"Claim by {self.user.username} on {self.Claim_Date}"
 
 class InsuranceClaim(models.Model):
+    customer_claim = models.ForeignKey(CustomerClaim, on_delete=models.CASCADE, related_name='insurance_claims', null=True, blank=True)
     accident_type = models.CharField(max_length=100)
     injury_prognosis = models.CharField(max_length=100)
     settlement_value = models.DecimalField(max_digits=10, decimal_places=2)
