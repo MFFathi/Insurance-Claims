@@ -31,4 +31,10 @@ urlpatterns = [
     path('users/create/', admin_required(views.UserCreateView.as_view()), name='user_create'),
     path('users/<int:pk>/update/', login_required(views.UserUpdateView.as_view()), name='user_update'),
     path('users/<int:pk>/delete/', admin_required(views.UserDeleteView.as_view()), name='user_delete'),
+    path('finance/billing/', views.billing_list, name='billing_list'),
+    path('finance/billing/create/<int:record_id>/', views.billing_create, name='billing_create'),
+    path('finance/billing/<int:bill_id>/', views.billing_detail, name='billing_detail'),
+    path('finance/billing/<int:bill_id>/edit/', views.billing_edit, name='billing_edit'),
+    path('finance/billing/<int:bill_id>/approve/', views.billing_approve, name='billing_approve'),
+    path('finance/invoices/', views.invoice_generation, name='invoice_generation'),
 ]

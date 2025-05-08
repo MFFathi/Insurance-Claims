@@ -66,7 +66,9 @@ def get_visible_links(user):
         visible_links.extend([
             {'url': 'records:process_claims', 'name': 'Process Claims'},
             {'url': 'records:financial_reports', 'name': 'Financial Reports'},
-            {'url': 'records:all_records', 'name': 'All Records'}
+            {'url': 'records:all_records', 'name': 'All Records'},
+            {'url': 'accounts:billing_list', 'name': 'Billing Records'},
+            {'url': 'accounts:invoice_generation', 'name': 'Generate Invoices'},
         ])
     
     if user.groups.filter(name='ai_engineer').exists():

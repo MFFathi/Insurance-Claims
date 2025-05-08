@@ -30,6 +30,12 @@ class InsuranceclaimsuserConfig(AppConfig):
                         'claims.approve',
                         'claims.reject',
                         'reports.view',
+                        'billing.view',
+                        'billing.create',
+                        'billing.edit',
+                        'billing.delete',
+                        'billing.approve',
+                        'billing.reject',
                     ]
                 },
                 'ai engineer': {

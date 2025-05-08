@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.core.exceptions import ValidationError
-from .models import User, Role
+from .models import User, Role, BillingRecord
 from .utils import validate_username, validate_password, validate_full_name, clean_full_name
 
 class CustomUserCreationForm(UserCreationForm):
@@ -179,3 +179,33 @@ class ProfileUpdateForm(forms.ModelForm):
             self.instance.set_password(new_password)
         
         return cleaned_data
+
+class BillingRecordForm(forms.ModelForm):
+    class Meta:
+        model = BillingRecord
+        fields = ['amount', 'description', 'notes']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount <= 0:
+            raise forms.ValidationError("Amount must be greater than zero")
+        return amount
+
+class BillingApprovalForm(forms.ModelForm):
+    class Meta:
+        model = BillingRecord
+        fields = ['status', 'notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].choices = [
+            ('approved', 'Approve'),
+            ('rejected', 'Reject'),
+        ]

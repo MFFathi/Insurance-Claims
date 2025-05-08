@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -11,15 +11,17 @@ from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django import forms
 from django.contrib.auth.models import Group
 
-from .models import User, Role, Permission
+from .models import User, Role, Permission, BillingRecord
 from .forms import (
     CustomUserCreationForm, CustomUserChangeForm, LoginForm, AdminUserCreationForm,
-    ProfileUpdateForm, FinanceUserCreationForm
+    ProfileUpdateForm, FinanceUserCreationForm, BillingRecordForm, BillingApprovalForm
 )
 from .decorators import (
     admin_required, finance_required, customer_required, ai_engineer_required,
     group_required
 )
+from InsuranceClaimsRecords.models import Record
+from InsuranceClaimsCustomer.models import CustomerClaim, InsuranceClaim
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -48,10 +50,14 @@ def signup(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            # Automatically assign the customer role
-            customer_group = Group.objects.get(name='customer')
+            # Get or create the customer group
+            customer_group, created = Group.objects.get_or_create(name='customer')
             user.save()
             user.groups.add(customer_group)
+            # Also set the customer role
+            customer_role = Role.objects.get_or_create(name='customer')[0]
+            user.role = customer_role
+            user.save()
             login(request, user)
             return redirect('accounts:profile')
     else:
@@ -176,3 +182,91 @@ def home_view(request):
     if request.user.is_authenticated:
         return redirect('accounts:profile')
     return redirect('accounts:login')
+
+@finance_required
+def billing_list(request):
+    bills = BillingRecord.objects.all()
+    return render(request, 'accounts/finance/billing_list.html', {
+        'bills': bills
+    })
+
+@finance_required
+def billing_create(request, record_id):
+    record = get_object_or_404(Record, record_id=record_id)
+    if request.method == 'POST':
+        form = BillingRecordForm(request.POST)
+        if form.is_valid():
+            bill = form.save(commit=False)
+            bill.record = record
+            bill.created_by = request.user
+            bill.save()
+            messages.success(request, 'Billing record created successfully.')
+            return redirect('accounts:billing_list')
+    else:
+        form = BillingRecordForm()
+    
+    return render(request, 'accounts/finance/billing_form.html', {
+        'form': form,
+        'record': record
+    })
+
+@finance_required
+def billing_edit(request, bill_id):
+    bill = get_object_or_404(BillingRecord, id=bill_id)
+    if bill.status != 'pending':
+        messages.error(request, 'Cannot edit a bill that is not pending.')
+        return redirect('accounts:billing_list')
+    
+    if request.method == 'POST':
+        form = BillingRecordForm(request.POST, instance=bill)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Billing record updated successfully.')
+            return redirect('accounts:billing_list')
+    else:
+        form = BillingRecordForm(instance=bill)
+    
+    return render(request, 'accounts/finance/billing_form.html', {
+        'form': form,
+        'bill': bill
+    })
+
+@finance_required
+def billing_approve(request, bill_id):
+    bill = get_object_or_404(BillingRecord, id=bill_id)
+    if bill.status != 'pending':
+        messages.error(request, 'This bill has already been processed.')
+        return redirect('accounts:billing_list')
+    
+    if request.method == 'POST':
+        form = BillingApprovalForm(request.POST, instance=bill)
+        if form.is_valid():
+            bill = form.save(commit=False)
+            bill.approved_by = request.user
+            bill.save()
+            messages.success(request, f'Bill {bill.get_status_display().lower()} successfully.')
+            return redirect('accounts:billing_list')
+    else:
+        form = BillingApprovalForm(instance=bill)
+    
+    return render(request, 'accounts/finance/billing_approval.html', {
+        'form': form,
+        'bill': bill
+    })
+
+@finance_required
+def billing_detail(request, bill_id):
+    bill = get_object_or_404(BillingRecord, id=bill_id)
+    return render(request, 'accounts/finance/billing_detail.html', {
+        'bill': bill
+    })
+
+@finance_required
+def invoice_generation(request):
+    # Only show customer claims that have a related insurance claim (prediction)
+    claims_with_prediction = CustomerClaim.objects.filter(insurance_claims__isnull=False).distinct()
+    # Optionally, prefetch the related insurance claim for display
+    claims_with_prediction = claims_with_prediction.prefetch_related('insurance_claims')
+    return render(request, 'accounts/finance/invoice_generation.html', {
+        'claims': claims_with_prediction
+    })

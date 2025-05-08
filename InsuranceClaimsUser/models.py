@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 import re
+from django.core.exceptions import ValidationError
+from InsuranceClaimsRecords.models import Record
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, password, full_name, **extra_fields):
@@ -99,3 +101,34 @@ class User(AbstractUser):
     def raise_without_permission(self, permission):
         if not self.check_permission(permission):
             raise PermissionError(f"User does not have permission: {permission}")
+
+class BillingRecord(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('paid', 'Paid'),
+    ]
+
+    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name='billing_records')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_bills')
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='approved_bills')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    payment_date = models.DateField(null=True, blank=True)
+    payment_reference = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Bill #{self.id} - {self.record} - {self.amount}"
+
+    def save(self, *args, **kwargs):
+        if self.status == 'approved' and not self.approved_by:
+            raise ValueError("Approved bills must have an approver")
+        super().save(*args, **kwargs)
