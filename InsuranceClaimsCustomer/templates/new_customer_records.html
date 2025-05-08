@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 {% load custom_tags %}
 
-{% block title %}Insurance Claim Records{% endblock %}
+{% block title %}New Customer Claims{% endblock %}
 
 {% block extra_style %}
     .records-header {
@@ -155,41 +155,26 @@
 {% block content %}
 <div class="card">
     <div class="records-header">
-        <h2>Insurance Claim Records</h2>
+        <h2>New Customer Claims</h2>
         <div class="records-actions">
-            <a href="{% url 'create_record' %}" class="btn">
-                <i class="fas fa-plus"></i> New Record
+            <a href="{% url 'customer:customer_claim_form' %}" class="btn">
+                <i class="fas fa-plus"></i> New Claim
             </a>
-            {% if user.is_superuser or user.role.name.lower == 'admin' or user.role.name.lower == 'finance' %}
-                <a href="{% url 'export_csv' %}" class="btn btn-success">
-                    <i class="fas fa-download"></i> Export CSV
-                </a>
-            {% endif %}
         </div>
     </div>
 
     {% if user.is_authenticated %}
         <div class="search-sort-container">
             <div class="search-box">
-                <input type="text" class="form-control" placeholder="Search records..." id="searchInput">
-            </div>
-            <div class="sort-box">
-                <form method="get" action="{% url 'sorted_records' %}" class="sort-form">
-                    <select name="sort" id="sort" class="form-control" onchange="this.form.submit()">
-                        <option value="">Sort by...</option>
-                        {% for field in fields %}
-                            <option value="{{ field }}" {% if field == sort_by %}selected{% endif %}>{{ field|capfirst }}</option>
-                        {% endfor %}
-                    </select>
-                </form>
+                <input type="text" class="form-control" placeholder="Search claims..." id="searchInput">
             </div>
         </div>
 
         <div class="table-container">
             <div class="table-header">
-                <h3 class="table-title">Records List</h3>
+                <h3 class="table-title">Claims List</h3>
                 <div class="table-actions">
-                    <span class="pagination-info">Showing {{ records.start_index }}-{{ records.end_index }} of {{ records.paginator.count }}</span>
+                    <span class="pagination-info">Showing {{ claims.start_index }}-{{ claims.end_index }} of {{ claims.paginator.count }}</span>
                 </div>
             </div>
 
@@ -204,26 +189,28 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for record in records %}
+                        {% for claim in claims %}
                             <tr>
                                 <td>
                                     <div class="record-actions">
-                                        <a href="{% url 'edit_record' record.record_id %}" class="btn btn-warning">
+                                        <a href="{% url 'customer:customer_claim_form' %}" class="btn btn-warning">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="{% url 'delete_record' record.record_id %}" class="btn btn-danger">
+                                        <a href="#" class="btn btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>
                                 </td>
                                 {% for field in fields %}
                                     <td>
-                                        {% if field == 'status' %}
-                                            <span class="record-status status-{{ record.status|lower }}">
-                                                {{ record.status }}
-                                            </span>
+                                        {% if field == 'predicted_settlement' %}
+                                            {% if claim.predicted_settlement %}
+                                                ${{ claim.predicted_settlement|floatformat:2 }}
+                                            {% else %}
+                                                Pending
+                                            {% endif %}
                                         {% else %}
-                                            {{ record|get_field_value:field }}
+                                            {{ claim|get_field_value:field }}
                                         {% endif %}
                                     </td>
                                 {% endfor %}
@@ -232,8 +219,8 @@
                             <tr>
                                 <td colspan="{{ fields|length|add:1 }}" class="no-records">
                                     <i class="fas fa-folder-open"></i>
-                                    <h3>No records found</h3>
-                                    <p>Start by creating a new record</p>
+                                    <h3>No claims found</h3>
+                                    <p>Start by submitting a new claim</p>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -244,16 +231,16 @@
 
         <div class="pagination-container">
             <div class="pagination-info">
-                Page {{ records.number }} of {{ records.paginator.num_pages }}
+                Page {{ claims.number }} of {{ claims.paginator.num_pages }}
             </div>
             <div class="pagination-links">
-                {% if records.has_previous %}
-                    <a href="?page={{ records.previous_page_number }}&sort={{ sort_by }}" class="btn">
+                {% if claims.has_previous %}
+                    <a href="?page={{ claims.previous_page_number }}" class="btn">
                         <i class="fas fa-chevron-left"></i> Previous
                     </a>
                 {% endif %}
-                {% if records.has_next %}
-                    <a href="?page={{ records.next_page_number }}&sort={{ sort_by }}" class="btn">
+                {% if claims.has_next %}
+                    <a href="?page={{ claims.next_page_number }}" class="btn">
                         Next <i class="fas fa-chevron-right"></i>
                     </a>
                 {% endif %}
@@ -261,8 +248,8 @@
         </div>
     {% else %}
         <div class="text-center">
-            <h3>Please log in to view records</h3>
-            <p>You need to be authenticated to access the insurance claim records.</p>
+            <h3>Please log in to view claims</h3>
+            <p>You need to be authenticated to access the customer claims.</p>
             <a href="{% url 'accounts:login' %}" class="btn">Login</a>
         </div>
     {% endif %}
@@ -285,4 +272,4 @@
         });
     });
 </script>
-{% endblock %}
+{% endblock %} 

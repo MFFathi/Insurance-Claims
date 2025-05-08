@@ -51,7 +51,9 @@ class CustomerClaimForm(forms.ModelForm):
         ]
 
         for field in numeric_fields:
-            self.fields[field].widget = forms.NumberInput(attrs={'class': 'form-control', 'step': 1})
+            if field in self.fields:
+                self.fields[field].widget = forms.NumberInput(attrs={'class': 'form-control', 'step': 1, 'min': 0})
+                self.fields[field].min_value = 0
 
         # Set calendar input for the two date fields
         self.fields['Accident_Date'].widget = forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})

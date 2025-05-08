@@ -9,8 +9,6 @@ class RecordManager(models.Manager):
 class Record(models.Model):
     record_id = models.AutoField(primary_key=True)
     record_type = models.CharField(max_length=150, blank=True, null=True)
-
-    # Financial & Medical Claims
     settlement_value = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     accident_type = models.CharField(max_length=150, blank=True, null=True)
     injury_prognosis = models.CharField(max_length=150, blank=True, null=True)
@@ -31,57 +29,40 @@ class Record(models.Model):
     special_trip_costs = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     special_journey_expenses = models.CharField(max_length=150, blank=True, null=True)
     special_therapy = models.CharField(max_length=150, blank=True, null=True)
-
-    # Injury and Legal Reports
     exceptional_circumstances = models.BooleanField(default=False)
     minor_psychological_injury = models.BooleanField(default=False)
     dominant_injury = models.CharField(max_length=150, blank=True, null=True)
     whiplash = models.BooleanField(default=False)
-
-    # Vehicle and Weather Conditions
     vehicle_type = models.CharField(max_length=150, blank=True, null=True)
     weather_conditions = models.CharField(max_length=150, blank=True, null=True)
     vehicle_age = models.IntegerField(blank=True, null=True)
     driver_age = models.IntegerField(blank=True, null=True)
     number_of_passengers = models.IntegerField(blank=True, null=True)
-
-    # Descriptions
     accident_description = models.TextField(blank=True, null=True)
     injury_description = models.TextField(blank=True, null=True)
-
-    # Legal and Reporting
     police_report_filed = models.BooleanField(default=False)
     witness_present = models.BooleanField(default=False)
-
-    # Personal Information
     GENDER_CHOICES = [
         ('Male', 'Male'),
         ('Female', 'Female'),
         ('Other', 'Other'),
     ]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
-
-    # Dates
     accident_date = models.DateField(blank=True, null=True)
     claim_date = models.DateField(blank=True, null=True)
     created_date = models.DateField(auto_now_add=True)
     last_modified_date = models.DateField(auto_now=True)
-
-    # Claim Status
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
-
     class Meta:
         indexes = [
             models.Index(fields=['status']),
             models.Index(fields=['accident_date']),
         ]
-
     objects = RecordManager()
-
     def __str__(self):
         return f"Record #{self.record_id} - {self.record_type}"

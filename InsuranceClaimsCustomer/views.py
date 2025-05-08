@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 import os
 from django.contrib import messages
+from django.core.paginator import Paginator
 
 # Load model
 model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'knn_model_sklearn.pkl')
@@ -157,3 +158,22 @@ def get_prediction(claim):
     # This is a placeholder that returns a random value
     import random
     return random.uniform(1000, 10000)
+
+@login_required
+def new_customer_records(request):
+    # Get all customer claims ordered by claim date (newest first)
+    claims_list = CustomerClaim.objects.all().order_by('-Claim_Date')
+    
+    # Paginate the claims (10 per page)
+    paginator = Paginator(claims_list, 10)
+    page_number = request.GET.get('page')
+    claims = paginator.get_page(page_number)
+    
+    # Get all field names for the table headers
+    fields = [field.name for field in CustomerClaim._meta.fields if field.name not in ['id', 'user']]
+    
+    context = {
+        'claims': claims,
+        'fields': fields,
+    }
+    return render(request, 'new_customer_records.html', context)
