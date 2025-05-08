@@ -1,9 +1,11 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
+import os
 
 class InsuranceclaimsmlConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'InsuranceClaimsML'
+    path = os.path.abspath(os.path.dirname(__file__))  # Ensures consistent app path
 
     def ready(self):
         from InsuranceClaimsUser.models import Role, Permission
@@ -29,4 +31,4 @@ class InsuranceclaimsmlConfig(AppConfig):
                         print(f'Created ML permission: {perm_name} for AI Engineer role')
 
         # Connect the signal
-        post_migrate.connect(setup_ml_permissions, sender=self) 
+        post_migrate.connect(setup_ml_permissions, sender=self)

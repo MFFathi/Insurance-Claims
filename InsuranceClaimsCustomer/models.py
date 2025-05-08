@@ -50,7 +50,7 @@ class CustomerClaim(models.Model):
     predicted_settlement = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
-        return f"Claim {self.id} - {self.AccidentType} on {self.Accident_Date}"
+        return f"Claim by {self.user.username} on {self.Claim_Date}"
 
 class InsuranceClaim(models.Model):
     accident_type = models.CharField(max_length=100)
@@ -60,3 +60,12 @@ class InsuranceClaim(models.Model):
 
     def __str__(self):
         return f"Claim {self.id} - {self.accident_type} - ${self.settlement_value}"
+
+class Feedback(models.Model):
+    claim = models.ForeignKey('CustomerClaim', on_delete=models.CASCADE, related_name='feedbacks')
+    q1 = models.IntegerField()
+    q2 = models.IntegerField()
+    q3 = models.IntegerField()
+    q4 = models.IntegerField()
+    q5 = models.IntegerField()
+    submission_date = models.DateTimeField(auto_now_add=True)

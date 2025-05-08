@@ -1,6 +1,7 @@
 FROM python:3.11 AS prod
 
 ENV PYTHONUNBUFFERED 1
+ENV DJANGO_SETTINGS_MODULE=InsuranceClaimsAPI.settings
 
 WORKDIR /app
 
@@ -17,5 +18,8 @@ RUN pip install -e .
 # Train the model before launching the app
 RUN python MLModel/model_trainer.py
 
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
 # Start Django
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "InsuranceClaims.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "InsuranceClaimsAPI.wsgi:application"]
