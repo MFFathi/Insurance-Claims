@@ -1,6 +1,6 @@
 import pandas as pd
 from django import forms
-from .models import CustomerClaim
+from .models import CustomerClaim, Feedback
 import os
 
 # Load CSV from correct path
@@ -20,6 +20,7 @@ class CustomerClaimForm(forms.ModelForm):
     class Meta:
         model = CustomerClaim
         fields = '__all__'
+        exclude = ['user']
 
     def __init__(self, *args, **kwargs):
         super(CustomerClaimForm, self).__init__(*args, **kwargs)
@@ -61,3 +62,9 @@ class CustomerClaimForm(forms.ModelForm):
         for field, column in dropdown_fields.items():
             choices = get_unique_choices(column)
             self.fields[field].widget = forms.Select(choices=choices, attrs={'class': 'form-control'})
+
+
+class FeedbackForm(forms.ModelForm):
+       class Meta:
+           model = Feedback
+           fields = ['q1', 'q2', 'q3', 'q4', 'q5']
