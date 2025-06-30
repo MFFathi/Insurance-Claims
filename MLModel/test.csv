@@ -1,0 +1,5 @@
+SettlementValue,AccidentType,Injury_Prognosis,SpecialHealthExpenses,SpecialReduction,SpecialOverage,GeneralRest,SpecialAdditionalInjury,SpecialEarningsLoss,SpecialUsageLoss,SpecialMedications,SpecialAssetDamage,SpecialRehabilitation,SpecialFixes,GeneralFixed,GeneralUplift,SpecialLoanerVehicle,SpecialTripCosts,SpecialJourneyExpenses,SpecialTherapy,Exceptional_Circumstances,Minor_Psychological_Injury,Dominant_injury,Whiplash,Vehicle_Type,Weather_Conditions,Accident_Date,Vehicle_Age,Driver_Age,Number_of_Passengers,Accident_Description,Injury_Description,Police_Report_Filed,Witness_Present,Gender,duration_days
+520,0,0,0,0,0,0,0,0,0,0,0,0,0,520,0,0,0,0,0,0,0,0,0,0,0,22:24.5,13,33,4,0,0,0,0,0,214
+870,0,1,0,0,0,520,0,0,90,0,0,0,0,260,0,0,0,0,0,0,0,1,0,0,1,55:01.1,4,45,2,0,1,0,0,1,198
+520,0,0,0,0,0,0,0,0,0,0,0,0,0,520,0,0,0,0,0,0,0,0,0,0,0,22:24.5,13,33,4,0,0,0,0,1,214
+870,0,1,0,0,0,520,0,0,90,0,0,0,0,260,0,0,0,0,0,0,0,1,0,0,1,55:01.1,4,45,2,0,1,0,0,0,198
